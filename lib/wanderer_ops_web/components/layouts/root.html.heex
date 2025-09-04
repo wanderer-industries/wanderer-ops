@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-gray-100 [scrollbar-gutter:stable]">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content={get_csrf_token()} />
+    <.live_title suffix=" · WandererOps">
+      {assigns[:page_title] || "WandererOps"}
+    </.live_title>
+    <LiveReact.Reload.vite_assets assets={["/js/app.js", "/css/app.css"]}>
+      <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
+      <script type="module" phx-track-static src={~p"/assets/app.js"}>
+      </script>
+    </LiveReact.Reload.vite_assets>
+  </head>
+  <body class="wanderer_ops-web g-root g-root_theme_light antialiased h-full">
+    {@inner_content}
+  </body>
+</html>

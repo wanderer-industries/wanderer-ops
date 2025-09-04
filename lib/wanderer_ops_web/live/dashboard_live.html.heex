@@ -1,0 +1,37 @@
+<div class="w-screen h-screen">
+  <!-- Main content -->
+  <.live_component
+    module={React.Dashboard}
+    id="dashboard"
+    data={@maps}
+    map_cached_data={@map_cached_data}
+  />
+
+  <.modal
+    :if={@live_action in [:create, :edit]}
+    title={"#{(@live_action == :create && "Add") || "Edit"} Map"}
+    class="!w-[500px]"
+    id="add_map_modal"
+    show
+    on_cancel={JS.patch(~p"/dashboard")}
+  >
+    <.form :let={f} for={@form} phx-change="validate" phx-submit={@live_action}>
+      <.input type="text" field={f[:title]} placeholder="Title" label="Title" />
+      <.input type="color" field={f[:color]} placeholder="Color" label="Color" />
+      <.input type="text" field={f[:map_url]} placeholder="URL" label="URL" />
+      <.input
+        type="password"
+        field={f[:public_api_key]}
+        placeholder="Public API Key"
+        class="w-full"
+        label="Public API Key"
+      />
+
+      <div class="modal-action">
+        <.button class="mt-2" type="submit" phx-disable-with="Saving...">
+          {(@live_action == :create && "Create") || "Save"}
+        </.button>
+      </div>
+    </.form>
+  </.modal>
+</div>

@@ -1,0 +1,28 @@
+@import "tailwindcss/base";
+@import "tailwindcss/utilities";
+@import "tailwindcss/components";
+
+/* This file is for your main application CSS */
+
+.g6-contextmenu-ul {
+  background: #303030;
+  border-radius: 4px;
+  padding: 4px 0;
+  font-size: 12px;
+  color: #fff;
+}
+
+.g6-contextmenu-li:hover {
+  background: black !important;
+}
+.g6-minimap {
+  background: #1f2937b5 !important;
+}
+.g6-toolbar {
+  background: white !important;
+  color: #fff !important;
+}
+
+.g6-toolbar .g6-toolbar-item {
+  display: flex !important;
+}
