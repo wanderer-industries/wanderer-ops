@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 
+import { getBackgroundClass } from '@/react/utils/getBackgroundClass';
+
 const filterUniqueSystems = (data: any[], main_map_id: string) => {
   const map = new Map();
 
@@ -39,14 +41,17 @@ const useNodes = (systems: any[], maps: any[]): any => {
   const nodes = useMemo(() => {
     const mainMapId = maps[0].id;
     const result = filterUniqueSystems(systems, mainMapId).map((system: any) => {
-      const map = mapsMap[system.map_id];
       return {
         id: `${system.solar_system_id}`,
         data: {
           name: system.name,
           systemEveId: system.solar_system_id,
           mapId: system.map_id,
-          isMain: map?.main_system_eve_id === system.solar_system_id,
+          nodeType: 'hexagon',
+          bgFill: getBackgroundClass(system.static_info.system_class, system.static_info.security),
+          isMain: system.status === 1,
+          isBorder: system.is_border || false,
+          borderMaps: system.border_maps || [],
         },
       };
     });

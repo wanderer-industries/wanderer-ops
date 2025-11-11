@@ -21,6 +21,10 @@ if System.get_env("PHX_SERVER") do
   config :wanderer_ops, WandererOpsWeb.Endpoint, server: true
 end
 
+config :wanderer_ops,
+  admin_username: System.get_env("WANDERER_OPS_ADMIN_USERNAME", "admin"),
+  admin_password: System.get_env("WANDERER_OPS_ADMIN_PASSWORD")
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||
@@ -66,10 +70,10 @@ if config_env() == :prod do
     ],
     secret_key_base: secret_key_base
 
-  config :wanderer_ops,
-    token_signing_secret:
-      System.get_env("TOKEN_SIGNING_SECRET") ||
-        raise("Missing environment variable `TOKEN_SIGNING_SECRET`!")
+  # config :wanderer_ops,
+  #   token_signing_secret:
+  #     System.get_env("TOKEN_SIGNING_SECRET") ||
+  #       raise("Missing environment variable `TOKEN_SIGNING_SECRET`!")
 
   # ## SSL Support
   #

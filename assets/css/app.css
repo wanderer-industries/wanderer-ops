@@ -2,6 +2,8 @@
 @import "tailwindcss/utilities";
 @import "tailwindcss/components";
 
+@import './default-theme.scss';
+
 /* This file is for your main application CSS */
 
 .g6-contextmenu-ul {

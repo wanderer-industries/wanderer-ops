@@ -13,6 +13,7 @@ import useNodes from './useNodes';
 type UseDashboardProps = {
   serverMaps: any[];
   mapCachedData: Record<string, any>;
+  licenseState: Record<string, any>;
   pushEvent?: (event: string, payload: any, callback?: (reply: any) => void) => void;
 };
 
@@ -24,21 +25,27 @@ type DashboardContext = {
   edges: any[];
   mapEdges: any[];
   mapData: Record<string, any>;
+  mapLicenseState: Record<string, any>;
 
   showSetup: (show: boolean) => void;
   editMap: (mapId: string) => Promise<void>;
+  startMap: (mapId: string) => Promise<void>;
+  stopMap: (mapId: string) => Promise<void>;
   removeMap: (mapId: string) => Promise<void>;
   markAsMain: (systemId: string) => Promise<void>;
+  markMapAsMain: (mapId: string) => Promise<void>;
 };
 
 export const useDashboard = ({
   serverMaps,
   mapCachedData,
+  licenseState,
   pushEvent = () => {},
 }: UseDashboardProps): DashboardContext => {
   const [showSetup, setShowSetup] = useStateRef<boolean>(false);
   const [maps, setMaps] = useStateRef<any[]>(serverMaps);
   const [mapData, setMapData] = useStateRef<Record<string, any>>({});
+  const [mapLicenseState, setMapLicenseState] = useStateRef<Record<string, any>>({});
 
   const pushEventAsync = usePushEventAsync({ pushEvent });
 
@@ -64,6 +71,14 @@ export const useDashboard = ({
 
   const editMap = useCallback(async (mapId: string) => {
     await pushEventAsync(ServerEvent.EDIT_MAP, mapId);
+  }, []);
+
+  const startMap = useCallback(async (mapId: string) => {
+    await pushEventAsync(ServerEvent.START_MAP, mapId);
+  }, []);
+
+  const stopMap = useCallback(async (mapId: string) => {
+    await pushEventAsync(ServerEvent.STOP_MAP, mapId);
   }, []);
 
   const removeMap = useCallback(async (mapId: string) => {
@@ -95,15 +110,22 @@ export const useDashboard = ({
     setMapData(mapCachedData);
   }, [mapCachedData]);
 
+  useEffect(() => {
+    setMapLicenseState(licenseState);
+  }, [licenseState]);
+
   return {
     setupVisible: showSetup,
     maps,
     mapData,
+    mapLicenseState,
     nodes,
     edges,
     mapNodes,
     mapEdges,
     editMap,
+    startMap,
+    stopMap,
     removeMap,
     markAsMain,
     markMapAsMain,

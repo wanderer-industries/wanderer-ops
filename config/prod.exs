@@ -8,6 +8,10 @@ import Config
 config :wanderer_ops, WandererOpsWeb.Endpoint,
   cache_static_manifest: "priv/static/cache_manifest.json"
 
+# Configure API token at compile time to prevent runtime override
+config :wanderer_ops,
+  license_manager_api_token: System.get_env("API_TOKEN") || "missing_token"
+
 config :wanderer_ops, WandererOps.Repo,
   ssl: false,
   stacktrace: true,

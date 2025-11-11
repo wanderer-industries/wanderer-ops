@@ -26,6 +26,16 @@ config :wanderer_ops, WandererOpsWeb.Endpoint,
   pubsub_server: WandererOps.PubSub,
   live_view: [signing_salt: "ycJU4EEA"]
 
+# Configure cache settings
+config :wanderer_ops,
+  cache_name: :wanderer_ops_cache,
+  cache_size_limit: 10_000,
+  cache_stats_enabled: true
+
+# Configure service modules with standardized behavior implementations
+config :wanderer_ops,
+  config_module: WandererOps.Shared.Config
+
 # Configures the mailer
 #
 # By default it uses the "Local" adapter which stores the emails
@@ -42,6 +52,10 @@ config :logger, :console,
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
+
+# Configure Hammer rate limiting
+config :hammer,
+  backend: {Hammer.Backend.ETS, [expiry_ms: 60_000 * 60 * 2, cleanup_interval_ms: 60_000 * 10]}
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

@@ -17,7 +17,7 @@ export const Maps = () => {
           ))}
           <a
             className="flex items-center justify-center bg-gray-800 border border-gray-700 p-1 hover:border-cyan-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10 group relative overflow-hidden "
-            href="/dashboard/create"
+            href="/create"
           >
             <span className="hero-plus-solid w-4 h-4" />
             <span className="text-[10px] font-medium px-1">Map</span>

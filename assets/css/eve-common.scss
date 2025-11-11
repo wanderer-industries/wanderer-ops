@@ -1,0 +1,572 @@
+@use './eve-common-variables';
+
+.eve-wh-effect-color-pulsar {
+  fill: var(--eve-effect-pulsar);
+  background-color: var(--eve-effect-pulsar);
+}
+
+.eve-wh-effect-color-magnetar {
+  fill: var(--eve-effect-magnetar);
+  background-color: var(--eve-effect-magnetar);
+}
+
+.eve-wh-effect-color-wolfRayet {
+  fill: var(--eve-effect-wolfRayet);
+  background-color: var(--eve-effect-wolfRayet);
+}
+
+.eve-wh-effect-color-blackHole {
+  fill: var(--eve-effect-blackHole);
+  background-color: var(--eve-effect-blackHole);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.33);
+}
+
+.eve-wh-effect-color-cataclysmicVariable {
+  fill: var(--eve-effect-cataclysmicVariable);
+  background-color: var(--eve-effect-cataclysmicVariable);
+}
+
+.eve-wh-effect-color-redGiant {
+  fill: var(--eve-effect-redGiant);
+  background-color: var(--eve-effect-redGiant);
+}
+
+.text-eve-wh-effect-color-pulsar {
+  color: var(--eve-effect-pulsar);
+}
+.text-eve-wh-effect-color-magnetar {
+  color: var(--eve-effect-magnetar);
+}
+.text-eve-wh-effect-color-wolfRayet {
+  color: var(--eve-effect-wolfRayet);
+}
+.text-eve-wh-effect-color-blackHole {
+  color: #fff;
+}
+.text-eve-wh-effect-color-cataclysmicVariable {
+  color: var(--eve-effect-cataclysmicVariable);
+}
+.text-eve-wh-effect-color-redGiant {
+  color: var(--eve-effect-redGiant);
+}
+.text-eve-wh-effect-color-dazhLiminalityLocus {
+  color: var(--eve-effect-dazhLiminalityLocus);
+}
+.text-eve-wh-effect-color-imperialStellarObservatory {
+  color: var(--eve-effect-imperialStellarObservatory);
+}
+.text-eve-wh-effect-color-stateStellarObservatory {
+  color: var(--eve-effect-stateStellarObservatory);
+}
+.text-eve-wh-effect-color-republicStellarObservatory {
+  color: var(--eve-effect-republicStellarObservatory);
+}
+.text-eve-wh-effect-color-federalStellarObservatory {
+  color: var(--eve-effect-federalStellarObservatory);
+}
+
+/* Security color classes */
+.eve-security-color-10 {
+  color: var(--eve-security-color-10) !important;
+  fill: var(--eve-security-color-10);
+}
+.eve-security-color-09 {
+  color: var(--eve-security-color-09) !important;
+  fill: var(--eve-security-color-09);
+}
+.eve-security-color-08 {
+  color: var(--eve-security-color-08) !important;
+  fill: var(--eve-security-color-08);
+}
+.eve-security-color-07 {
+  color: var(--eve-security-color-07) !important;
+  fill: var(--eve-security-color-07);
+}
+.eve-security-color-06 {
+  color: var(--eve-security-color-06) !important;
+  fill: var(--eve-security-color-06);
+}
+.eve-security-color-05 {
+  color: var(--eve-security-color-05) !important;
+  fill: var(--eve-security-color-05);
+}
+.eve-security-color-04 {
+  color: var(--eve-security-color-04) !important;
+  fill: var(--eve-security-color-04);
+}
+.eve-security-color-03 {
+  color: var(--eve-security-color-03) !important;
+  fill: var(--eve-security-color-03);
+}
+.eve-security-color-02 {
+  color: var(--eve-security-color-02) !important;
+  fill: var(--eve-security-color-02);
+}
+.eve-security-color-01 {
+  color: var(--eve-security-color-01) !important;
+  fill: var(--eve-security-color-01);
+}
+.eve-security-color-00 {
+  color: var(--eve-security-color-00) !important;
+  fill: var(--eve-security-color-00);
+}
+.eve-security-color-m-01 {
+  color: var(--eve-security-color-m-01) !important;
+  fill: var(--eve-security-color-m-01);
+}
+.eve-security-color-m-02 {
+  color: var(--eve-security-color-m-02) !important;
+  fill: var(--eve-security-color-m-02);
+}
+.eve-security-color-m-03 {
+  color: var(--eve-security-color-m-03) !important;
+  fill: var(--eve-security-color-m-03);
+}
+.eve-security-color-m-04 {
+  color: var(--eve-security-color-m-04) !important;
+  fill: var(--eve-security-color-m-04);
+}
+.eve-security-color-m-05 {
+  color: var(--eve-security-color-m-05) !important;
+  fill: var(--eve-security-color-m-05);
+}
+.eve-security-color-m-06 {
+  color: var(--eve-security-color-m-06) !important;
+  fill: var(--eve-security-color-m-06);
+}
+.eve-security-color-m-07 {
+  color: var(--eve-security-color-m-07) !important;
+  fill: var(--eve-security-color-m-07);
+}
+.eve-security-color-m-08 {
+  color: var(--eve-security-color-m-08) !important;
+  fill: var(--eve-security-color-m-08);
+}
+.eve-security-color-m-09 {
+  color: var(--eve-security-color-m-09) !important;
+  fill: var(--eve-security-color-m-09);
+}
+.eve-security-color-m-10 {
+  color: var(--eve-security-color-m-10) !important;
+  fill: var(--eve-security-color-m-10);
+}
+
+/* Security backgrounds */
+.eve-security-background-10 {
+  background-color: var(--eve-security-color-10);
+  fill: var(--eve-security-color-10);
+}
+.eve-security-background-09 {
+  background-color: var(--eve-security-color-09);
+  fill: var(--eve-security-color-09);
+}
+.eve-security-background-08 {
+  background-color: var(--eve-security-color-08);
+  fill: var(--eve-security-color-08);
+}
+.eve-security-background-07 {
+  background-color: var(--eve-security-color-07);
+  fill: var(--eve-security-color-07);
+}
+.eve-security-background-06 {
+  background-color: var(--eve-security-color-06);
+  fill: var(--eve-security-color-06);
+}
+.eve-security-background-05 {
+  background-color: var(--eve-security-color-05);
+  fill: var(--eve-security-color-05);
+}
+.eve-security-background-04 {
+  background-color: var(--eve-security-color-04);
+  fill: var(--eve-security-color-04);
+}
+.eve-security-background-03 {
+  background-color: var(--eve-security-color-03);
+  fill: var(--eve-security-color-03);
+}
+.eve-security-background-02 {
+  background-color: var(--eve-security-color-02);
+  fill: var(--eve-security-color-02);
+}
+.eve-security-background-01 {
+  background-color: var(--eve-security-color-01);
+  fill: var(--eve-security-color-01);
+}
+.eve-security-background-00 {
+  background-color: var(--eve-security-color-00);
+  fill: var(--eve-security-color-00);
+}
+.eve-security-background-m-01 {
+  background-color: var(--eve-security-color-m-01);
+  fill: var(--eve-security-color-m-01);
+}
+.eve-security-background-m-02 {
+  background-color: var(--eve-security-color-m-02);
+  fill: var(--eve-security-color-m-02);
+}
+.eve-security-background-m-03 {
+  background-color: var(--eve-security-color-m-03);
+  fill: var(--eve-security-color-m-03);
+}
+.eve-security-background-m-04 {
+  background-color: var(--eve-security-color-m-04);
+  fill: var(--eve-security-color-m-04);
+}
+.eve-security-background-m-05 {
+  background-color: var(--eve-security-color-m-05);
+  fill: var(--eve-security-color-m-05);
+}
+.eve-security-background-m-06 {
+  background-color: var(--eve-security-color-m-06);
+  fill: var(--eve-security-color-m-06);
+}
+.eve-security-background-m-07 {
+  background-color: var(--eve-security-color-m-07);
+  fill: var(--eve-security-color-m-07);
+}
+.eve-security-background-m-08 {
+  background-color: var(--eve-security-color-m-08);
+  fill: var(--eve-security-color-m-08);
+}
+.eve-security-background-m-09 {
+  background-color: var(--eve-security-color-m-09);
+  fill: var(--eve-security-color-m-09);
+}
+.eve-security-background-m-10 {
+  background-color: var(--eve-security-color-m-10);
+  fill: var(--eve-security-color-m-10);
+}
+
+/* WH Type color classes */
+.eve-wh-type-color-high {
+  color: var(--eve-wh-type-color-high) !important;
+  fill: var(--eve-wh-type-color-high);
+  font-weight: bold !important;
+}
+.eve-wh-type-color-low {
+  color: var(--eve-wh-type-color-low) !important;
+  fill: var(--eve-wh-type-color-low);
+  font-weight: bold !important;
+}
+.eve-wh-type-color-null {
+  color: var(--eve-wh-type-color-null) !important;
+  fill: var(--eve-wh-type-color-null);
+  font-weight: bold !important;
+}
+.eve-wh-type-color-c1 {
+  color: var(--eve-wh-type-color-c1) !important;
+  fill: var(--eve-wh-type-color-c1);
+  font-weight: bold !important;
+}
+.eve-wh-type-color-c2 {
+  color: var(--eve-wh-type-color-c2) !important;
+  fill: var(--eve-wh-type-color-c2);
+  font-weight: bold !important;
+}
+.eve-wh-type-color-c3 {
+  color: var(--eve-wh-type-color-c3) !important;
+  fill: var(--eve-wh-type-color-c3);
+  font-weight: bold !important;
+}
+.eve-wh-type-color-c4 {
+  color: var(--eve-wh-type-color-c4) !important;
+  fill: var(--eve-wh-type-color-c4);
+  font-weight: bold !important;
+}
+.eve-wh-type-color-c5 {
+  color: var(--eve-wh-type-color-c5) !important;
+  fill: var(--eve-wh-type-color-c5);
+  font-weight: bold !important;
+}
+.eve-wh-type-color-c6 {
+  color: var(--eve-wh-type-color-c6) !important;
+  fill: var(--eve-wh-type-color-c6);
+  font-weight: bold !important;
+}
+.eve-wh-type-color-c13 {
+  color: var(--eve-wh-type-color-c13) !important;
+  fill: var(--eve-wh-type-color-c13);
+}
+.eve-wh-type-color-drifter {
+  color: var(--eve-wh-type-color-drifter) !important;
+  fill: var(--eve-wh-type-color-drifter);
+}
+.eve-wh-type-color-thera {
+  color: var(--eve-wh-type-color-thera) !important;
+  fill: var(--eve-wh-type-color-thera);
+}
+
+/* WH Type backgrounds */
+.eve-wh-type-background-high {
+  background-color: var(--eve-wh-type-color-high);
+}
+.eve-wh-type-background-low {
+  background-color: var(--eve-wh-type-color-low);
+}
+.eve-wh-type-background-null {
+  background-color: var(--eve-wh-type-color-null);
+}
+.eve-wh-type-background-c1 {
+  background-color: var(--eve-wh-type-color-c1);
+}
+.eve-wh-type-background-c2 {
+  background-color: var(--eve-wh-type-color-c2);
+}
+.eve-wh-type-background-c3 {
+  background-color: var(--eve-wh-type-color-c3);
+}
+.eve-wh-type-background-c4 {
+  background-color: var(--eve-wh-type-color-c4);
+}
+.eve-wh-type-background-c5 {
+  background-color: var(--eve-wh-type-color-c5);
+}
+.eve-wh-type-background-c6 {
+  background-color: var(--eve-wh-type-color-c6);
+}
+.eve-wh-type-background-c13 {
+  background-color: var(--eve-wh-type-color-c13);
+}
+.eve-wh-type-background-drifter {
+  background-color: var(--eve-wh-type-color-drifter);
+}
+.eve-wh-type-background-thera {
+  background-color: var(--eve-wh-type-color-thera);
+}
+.eve-wh-type-background-zarzakh {
+  background-color: var(--eve-wh-type-color-zarzakh);
+}
+
+/* Kind color classes */
+.eve-kind-color-high {
+  color: var(--eve-wh-type-color-high);
+  fill: var(--eve-wh-type-color-high);
+}
+.eve-kind-color-low {
+  color: var(--eve-wh-type-color-low);
+  fill: var(--eve-wh-type-color-low);
+  font-weight: bold;
+}
+.eve-kind-color-null {
+  color: var(--eve-wh-type-color-null);
+  fill: var(--eve-wh-type-color-null);
+}
+.eve-kind-color-wh {
+  color: var(--eve-wh-type-color-c6);
+  fill: var(--eve-wh-type-color-c6);
+}
+.eve-kind-color-thera {
+  color: var(--eve-wh-type-color-thera);
+  fill: var(--eve-wh-type-color-thera);
+}
+.eve-kind-color-abyss {
+  color: var(--eve-wh-type-color-c6);
+  fill: var(--eve-wh-type-color-c6);
+}
+.eve-kind-color-penalty {
+  color: var(--eve-wh-type-color-c6);
+  fill: var(--eve-wh-type-color-c6);
+}
+.eve-kind-color-pochven {
+  color: var(--eve-wh-type-color-c6);
+  fill: var(--eve-wh-type-color-c6);
+}
+.eve-kind-color-zarzakh {
+  color: var(--eve-wh-type-color-zarzakh);
+  fill: var(--eve-wh-type-color-zarzakh);
+}
+
+/* Kind backgrounds */
+.eve-kind-background-high {
+  background-color: var(--eve-wh-type-color-high);
+}
+.eve-kind-background-low {
+  background-color: var(--eve-wh-type-color-low);
+}
+.eve-kind-background-null {
+  background-color: var(--eve-wh-type-color-null);
+}
+.eve-kind-background-wh {
+  background-color: var(--eve-wh-type-color-c6);
+}
+.eve-kind-background-thera {
+  background-color: var(--eve-wh-type-color-thera);
+}
+.eve-kind-background-abyss {
+  background-color: var(--eve-wh-type-color-c6);
+}
+.eve-kind-background-penalty {
+  background-color: var(--eve-wh-type-color-c6);
+}
+.eve-kind-background-pochven {
+  background-color: var(--eve-wh-type-color-c6);
+}
+.eve-kind-background-zarzakh {
+  background-color: var(--eve-wh-type-color-zarzakh);
+}
+
+/* System status color classes */
+.eve-system-status-color-clear {
+  color: var(--eve-solar-system-status-color-unknown);
+}
+.eve-system-status-color-home {
+  color: var(--eve-solar-system-status-color-home);
+}
+.eve-system-status-color-friendly {
+  color: var(--eve-solar-system-status-color-friendly);
+}
+.eve-system-status-color-lookingFor {
+  color: var(--eve-solar-system-status-color-lookingFor);
+}
+.eve-system-status-color-warning {
+  color: var(--eve-solar-system-status-color-warning);
+}
+.eve-system-status-color-target {
+  color: var(--eve-solar-system-status-color-target);
+}
+.eve-system-status-color-dangerous {
+  color: var(--eve-solar-system-status-color-dangerous);
+}
+
+.eve-system-status-clear {
+  background-color: var(--eve-solar-system-status-unknown);
+}
+.eve-system-status-home {
+  background-color: var(--eve-solar-system-status-home);
+}
+.eve-system-status-friendly {
+  background-color: var(--eve-solar-system-status-friendly);
+}
+.eve-system-status-lookingFor {
+  background-color: var(--eve-solar-system-status-lookingFor);
+}
+.eve-system-status-warning {
+  background-color: var(--eve-solar-system-status-warning);
+}
+.eve-system-status-target {
+  background-color: var(--eve-solar-system-status-target);
+}
+.eve-system-status-dangerous {
+  background-color: var(--eve-solar-system-status-dangerous);
+}
+
+.eve-system-status-clear {
+  background-color: var(--eve-solar-system-status-unknown);
+  color: var(--eve-solar-system-status-color-unknown);
+}
+
+.eve-system-status-home {
+  background-color: var(--eve-solar-system-status-home);
+  color: var(--eve-solar-system-status-color-home);
+}
+
+.eve-system-status-friendly {
+  background-color: var(--eve-solar-system-status-friendly);
+  color: var(--eve-solar-system-status-color-friendly);
+}
+
+.eve-system-status-lookingFor {
+  background-color: var(--eve-solar-system-status-lookingFor);
+  color: var(--eve-solar-system-status-color-lookingFor);
+}
+
+.eve-system-status-warning {
+  background-color: var(--eve-solar-system-status-warning);
+  color: var(--eve-solar-system-status-color-warning);
+}
+
+.eve-system-status-target {
+  background-color: var(--eve-solar-system-status-target);
+  color: var(--eve-solar-system-status-color-target);
+}
+
+.eve-system-status-dangerous {
+  background-color: var(--eve-solar-system-status-dangerous);
+  color: var(--eve-solar-system-status-color-dangerous);
+}
+
+.wd-route-system-shape-triangle {
+  clip-path: polygon(50% 0, 0 100%, 100% 100%);
+}
+.wd-route-system-shape-circle {
+  border-radius: 40%;
+}
+
+/* Some additional background classes */
+.wd-marker-bookmark-color-shattered {
+  background-color: #833ca4;
+  margin-top: 1px;
+}
+
+.wd-marker-bookmark-color-custom {
+  background-color: #282828;
+  border: 1px solid #4c4c4c;
+  color: #ffffff !important;
+  padding-top: 1px !important;
+}
+
+.wd-marker-bookmark-color-a0 {
+  background-color: #3d94af;
+}
+
+.wd-marker-bookmark-color-average {
+  background-color: #2d803b;
+}
+
+.wd-marker-bookmark-color-ytirium {
+  background-color: #3d94af;
+}
+
+.wd-marker-bookmark-color-l1 {
+  background-color: #563daf;
+}
+
+.wd-marker-bookmark-color-l2 {
+  background-color: #8f3daf;
+}
+
+.wd-marker-bookmark-color-l3 {
+  background-color: #3d65af;
+}
+
+.wd-marker-bookmark-color-normal {
+  background-color: #ffa200;
+}
+
+.wd-marker-bookmark-color-warn {
+  background-color: #f15600;
+}
+
+.wd-marker-bookmark-color-danger {
+  background-color: #d10600;
+}
+
+
+.react-flow__minimap-node {
+  fill: #ffb03a;
+}
+
+.react-flow__minimap {
+  border: 1px solid #282828;
+  border-radius: 4px;
+  background-color: rgb(47 37 37) !important;
+  overflow: hidden;
+}
+
+.react-flow__minimap-mask {
+  stroke-width: 2px;
+  fill: rgba(0, 0, 0, 0.5);
+  mix-blend-mode: overlay;
+}
+
+.react-flow__minimap-mask {
+  stroke-width: 2px;
+  fill: rgb(0 0 0 / 50%) !important;
+  mix-blend-mode: inherit;
+  opacity: 1;
+  stroke: #fff;
+}
+
+.context-menu-active {
+  background-color: rgba(131, 131, 131, 0.33);
+}

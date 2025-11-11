@@ -7,7 +7,13 @@ defmodule WandererOps.Map.ServerSupervisor do
   @impl true
   def init(args) do
     children = [
-      {WandererOps.Map.Server, args}
+      %{
+        id: WandererOps.Map.Server,
+        start: {WandererOps.Map.Server, :start_link, [args]},
+        restart: :transient,
+        shutdown: 5000,
+        type: :worker
+      }
     ]
 
     Supervisor.init(children, strategy: :one_for_one, auto_shutdown: :any_significant)

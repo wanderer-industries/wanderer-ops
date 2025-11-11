@@ -2,7 +2,7 @@ import Config
 
 # Only in tests, remove the complexity from the password hashing algorithm
 config :argon2_elixir, t_cost: 1, m_cost: 8
-config :wanderer_ops, token_signing_secret: "Pl0aH4mI2CIu3Zjc/K4pu5jqRaKt34x5"
+# config :wanderer_ops, token_signing_secret: "Pl0aH4mI2CIu3Zjc/K4pu5jqRaKt34x5"
 
 # Configure your database
 #

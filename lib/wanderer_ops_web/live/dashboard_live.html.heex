@@ -5,6 +5,7 @@
     id="dashboard"
     data={@maps}
     map_cached_data={@map_cached_data}
+    license_state={@license_state}
   />
 
   <.modal
@@ -13,7 +14,7 @@
     class="!w-[500px]"
     id="add_map_modal"
     show
-    on_cancel={JS.patch(~p"/dashboard")}
+    on_cancel={JS.patch(~p"/")}
   >
     <.form :let={f} for={@form} phx-change="validate" phx-submit={@live_action}>
       <.input type="text" field={f[:title]} placeholder="Title" label="Title" />

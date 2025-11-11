@@ -2,7 +2,15 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { Circle as CircleGeometry } from '@antv/g';
 import { Circle, ExtensionCategory, Graph, register } from '@antv/g6';
 
-import { useMapEdges, useMapNodes, useMarkMapAsMain, useShowSetup } from '@/react/state/useDashboard';
+import {
+  useMapEdges,
+  useMapLicenseState,
+  useMapNodes,
+  useMarkMapAsMain,
+  useShowSetup,
+} from '@/react/state/useDashboard';
+
+import LicenseStatus from './LicenseStatus';
 
 class RippleCircle extends Circle {
   onCreate() {
@@ -75,96 +83,6 @@ const animation = {
   easing: 'linear',
 };
 
-// const data1 = {
-//   nodes: [
-//     {
-//       id: 'halo',
-//       data: {
-//         name: 'Circle1',
-//         mapId: '1',
-//         halo: true,
-//       },
-//     },
-//     {
-//       id: 'badges',
-//       data: {
-//         name: 'Circle2',
-//         mapId: '1',
-//       },
-//     },
-//     {
-//       id: 'badges22',
-//       data: {
-//         name: 'Circle2',
-//         mapId: '1',
-//       },
-//     },
-//     {
-//       id: 'ports',
-//       data: {
-//         name: 'Circle3',
-//         mapId: '1',
-//       },
-//     },
-//     {
-//       id: 'badges2',
-//       data: {
-//         name: 'Circle2',
-//         mapId: '2',
-//       },
-//     },
-//     {
-//       id: 'ports2',
-//       data: {
-//         name: 'Circle3',
-//         mapId: '2',
-//       },
-//     },
-//   ],
-//   edges: [
-//     {
-//       id: 'edge1',
-//       source: 'halo',
-//       target: 'badges',
-//       data: {
-//         name: 'Edge1',
-//       },
-//     },
-//     {
-//       id: 'edge12',
-//       source: 'halo',
-//       target: 'badges22',
-//       data: {
-//         name: 'Edge1',
-//       },
-//     },
-//     {
-//       id: 'edge2',
-//       source: 'badges',
-//       target: 'ports',
-//       data: {
-//         name: 'Edge2',
-//       },
-//     },
-//     // {
-//     //   id: 'edge3',
-//     //   source: 'halo',
-//     //   target: 'badges2',
-//     //   data: {
-//     //     name: 'Edge222',
-//     //   },
-//     // },
-//     {
-//       id: 'edge4',
-//       source: 'badges2',
-//       target: 'ports2',
-//       data: {
-//         name: 'Edge2',
-//       },
-//     },
-//   ],
-// };
-
 const MapsSetup = () => {
   const containerRef = useRef(null);
   const graphRef = useRef(null);
@@ -172,6 +90,7 @@ const MapsSetup = () => {
 
   const mapNodes = useMapNodes();
   const mapEdges = useMapEdges();
+  const licenseState = useMapLicenseState();
   const markMapAsMain = useMarkMapAsMain();
   const showSetup = useShowSetup();
 
@@ -416,7 +335,7 @@ const MapsSetup = () => {
   }, [data]);
 
   return (
-    <div className="max-h-[300px] h-[300px] z-[100] fixed top-0 left-0 right-0  text-gray-100 shadow-lg">
+    <div className="max-h-[340] h-[340px] z-[100] fixed top-0 left-0 right-0  text-gray-100 shadow-lg">
       {/* Main Content */}
       <main className="h-[300px] bg-gray-400 overflow-y-auto">
         {/* Grid Layout */}
@@ -427,6 +346,9 @@ const MapsSetup = () => {
           onClick={() => showSetup(false)}
         />
       </main>
+      <aside className="h-[40px] backdrop-blur-md bg-gray-900/30 border-t border-gray-700/50 flex items-center justify-start text-gray-300 shadow-lg p-2">
+        <LicenseStatus licenseState={licenseState} />
+      </aside>
     </div>
   );
 };

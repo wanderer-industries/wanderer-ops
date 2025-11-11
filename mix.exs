@@ -45,6 +45,7 @@ defmodule WandererOps.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:httpoison, "~> 2.2"},
       {:igniter, "~> 0.5", only: [:dev, :test]},
       {:argon2_elixir, "~> 3.0"},
       {:picosat_elixir, "~> 0.2"},
@@ -96,7 +97,9 @@ defmodule WandererOps.MixProject do
       {:nodejs, "~> 3.1"},
       {:uuid, "~> 1.1"},
       {:nimble_csv, "~> 1.2.0"},
-      {:tidewave, "~> 0.4", only: :dev}
+      {:tidewave, "~> 0.4", only: :dev},
+      # Rate limiting
+      {:hammer, "~> 7.0"}
     ]
   end
 

@@ -3,16 +3,8 @@ defmodule WandererOpsWeb.DashboardLive do
 
   require Logger
 
+  alias WandererOps.Infrastructure.Cache
   alias WandererOpsWeb.Components.React
-
-  def mount(_params, _session, socket) do
-    {:ok,
-     assign(socket,
-       is_connected?: true,
-       maps: [],
-       map_cached_data: %{}
-     )}
-  end
 
   def mount(_params, _session, socket) do
     {:ok,
@@ -20,6 +12,7 @@ defmodule WandererOpsWeb.DashboardLive do
      |> assign(
        is_connected?: false,
        maps: [],
+       license_state: nil,
        map_cached_data: %{}
      )}
   end
@@ -31,6 +24,18 @@ defmodule WandererOpsWeb.DashboardLive do
      |> apply_action(socket.assigns.live_action, params)}
   end
 
+  def handle_event("ui:start_map", map_id, socket) do
+    WandererOps.Map.Manager.start_map(map_id)
+    Process.send_after(self(), :refresh_maps, 1000)
+    {:noreply, socket}
+  end
+
+  def handle_event("ui:stop_map", map_id, socket) do
+    WandererOps.Map.Manager.stop_map(map_id)
+    Process.send_after(self(), :refresh_maps, 1000)
+    {:noreply, socket}
+  end
+
   def handle_event("ui:remove_map", map_id, socket) do
     case WandererOps.Api.Map.by_id(map_id) do
       {:ok, map} ->
@@ -40,7 +45,7 @@ defmodule WandererOpsWeb.DashboardLive do
 
         {:noreply,
          socket
-         |> push_patch(to: ~p"/dashboard")}
+         |> push_patch(to: ~p"/")}
 
       _ ->
         {:noreply, socket |> put_flash(:error, "Failed to remove map. Try again.")}
@@ -60,7 +65,7 @@ defmodule WandererOpsWeb.DashboardLive do
         {:noreply,
          socket
          # |> assign(maps: maps |> Enum.map(fn map -> map_ui_map(map) end))
-         |> push_patch(to: ~p"/dashboard")}
+         |> push_patch(to: ~p"/")}
 
       _ ->
         {:noreply, socket |> put_flash(:error, "Failed to create map. Try again.")}
@@ -74,7 +79,7 @@ defmodule WandererOpsWeb.DashboardLive do
 
     {:noreply,
      socket
-     |> push_patch(to: ~p"/dashboard")}
+     |> push_patch(to: ~p"/")}
   end
 
   def handle_event(
@@ -100,12 +105,6 @@ defmodule WandererOpsWeb.DashboardLive do
         %{"mapId" => map_id},
         socket
       ) do
-    {:ok, map} = WandererOps.Api.Map.by_id(map_id)
-
-    # {:ok, _updated_map} =
-    #   map
-    #   |> WandererOps.Api.Map.update_main_system(%{main_system_eve_id: system_eve_id})
-
     {:ok, maps} = WandererOps.Api.Map.read()
 
     maps =
@@ -115,6 +114,12 @@ defmodule WandererOpsWeb.DashboardLive do
         |> WandererOps.Api.Map.update_is_main!(%{is_main: map_id == map.id})
       end)
 
+    Cachex.put(
+      :maps_shared_cache,
+      "main",
+      map_id
+    )
+
     {:noreply,
      socket
      |> assign(maps: maps |> Enum.map(fn map -> map_ui_map(map) end))}
@@ -122,12 +127,25 @@ defmodule WandererOpsWeb.DashboardLive do
 
   @impl true
   def handle_info(
+        :refresh_maps,
+        socket
+      ) do
+    {:ok, maps} = WandererOps.Api.Map.read()
+
+    {:noreply,
+     socket
+     |> assign(maps: maps |> Enum.map(&map_ui_map/1))}
+  end
+
+  @impl true
+  def handle_info(
         %{event: :data_updated, payload: _payload},
         %{assigns: %{maps: maps}} = socket
       ) do
-    cached_data = prepare_cached_data(maps)
+    Logger.info("DashboardLive received :data_updated event, re-running border detection")
+    {:ok, map_cached_data} = WandererOps.Map.Utils.prepare_cached_data(maps)
 
-    {:noreply, socket |> assign(map_cached_data: cached_data)}
+    {:noreply, socket |> assign(map_cached_data: map_cached_data)}
   end
 
   defp apply_action(socket, :index, _params) do
@@ -135,21 +153,29 @@ defmodule WandererOpsWeb.DashboardLive do
 
     maps
     |> Enum.each(fn map ->
+      Logger.info("DashboardLive subscribing to map updates: #{map.id}")
       Phoenix.PubSub.subscribe(WandererOps.PubSub, map.id)
     end)
 
-    cached_data = prepare_cached_data(maps)
+    {:ok, map_cached_data} = WandererOps.Map.Utils.prepare_cached_data(maps)
+
+    license_state =
+      Cache.get(Cache.Keys.license_validation())
+      |> case do
+        {:ok, result} -> result
+        _ -> nil
+      end
 
     socket
     |> assign(:page_title, "Wanderer OPS")
     |> assign(maps: maps |> Enum.map(fn map -> map_ui_map(map) end))
-    |> assign(map_cached_data: cached_data)
+    |> assign(map_cached_data: map_cached_data, license_state: license_state)
   end
 
   defp apply_action(socket, :create, _params) do
     socket
-    |> assign(:active_page, :access_lists)
-    |> assign(:page_title, "Map - New")
+    |> assign(:active_page, :create)
+    |> assign(:page_title, "Add map")
     |> assign(
       :form,
       AshPhoenix.Form.for_create(WandererOps.Api.Map, :new,
@@ -165,7 +191,7 @@ defmodule WandererOpsWeb.DashboardLive do
     {:ok, map} = WandererOps.Api.Map.by_id(map_id)
 
     socket
-    |> assign(:page_title, "Map - Edit")
+    |> assign(:page_title, "Edit Map")
     |> assign(:edit_map, map)
     |> assign(
       :form,
@@ -173,68 +199,24 @@ defmodule WandererOpsWeb.DashboardLive do
     )
   end
 
-  defp prepare_cached_data(maps) do
-    # Sort maps to prioritize main maps first
-    sorted_maps = Enum.sort_by(maps, & &1.is_main, :desc)
+  def map_ui_map(map) do
+    {:ok, started} = Cachex.get(:maps_cache, "#{map.id}:started")
 
-    {cached_data, _used_connections, _used_systems} =
-      sorted_maps
-      |> Enum.reduce({%{}, MapSet.new(), MapSet.new()}, fn map,
-                                                           {acc, used_connections, used_systems} ->
-        raw_data = Cachex.get!(:maps_cache, map.id)
-
-        case raw_data do
-          %{systems: systems, connections: connections} ->
-            # Filter out systems that are already used by other maps
-            unique_systems =
-              Enum.reject(systems, fn system ->
-                MapSet.member?(used_systems, system["solar_system_id"])
-              end)
-
-            # Filter out connections that are already used by other maps
-            unique_connections =
-              Enum.reject(connections, fn conn ->
-                connection_key = {conn["solar_system_source"], conn["solar_system_target"]}
-
-                MapSet.member?(used_connections, connection_key) ||
-                  MapSet.member?(
-                    used_connections,
-                    {conn["solar_system_target"], conn["solar_system_source"]}
-                  )
-              end)
-
-            # Add these systems to the used set
-            new_used_systems =
-              Enum.reduce(unique_systems, used_systems, fn system, acc_used ->
-                MapSet.put(acc_used, system["solar_system_id"])
-              end)
-
-            # Add these connections to the used set
-            new_used_connections =
-              Enum.reduce(unique_connections, used_connections, fn conn, acc_used ->
-                connection_key = {conn["solar_system_source"], conn["solar_system_target"]}
-                MapSet.put(acc_used, connection_key)
-              end)
-
-            filtered_data = %{systems: unique_systems, connections: unique_connections}
-            {Map.put(acc, map.id, filtered_data), new_used_connections, new_used_systems}
-
-          _ ->
-            {Map.put(acc, map.id, raw_data), used_connections, used_systems}
-        end
-      end)
-
-    cached_data
+    map
+    |> Map.take([
+      :id,
+      :title,
+      :color,
+      :is_main,
+      :main_system_eve_id
+    ])
+    |> Map.put(:started, started)
   end
 
-  def map_ui_map(map),
-    do:
-      map
-      |> Map.take([
-        :id,
-        :title,
-        :color,
-        :is_main,
-        :main_system_eve_id
-      ])
+  def map_ui_system(%{"solar_system_id" => solar_system_id} = system) do
+    {:ok, solar_system_info} =
+      WandererOps.CachedInfo.get_system_static_info(solar_system_id)
+
+    system |> Map.put("static_info", solar_system_info)
+  end
 end

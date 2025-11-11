@@ -74,7 +74,7 @@ config :wanderer_ops, WandererOpsWeb.Endpoint,
   ]
 
 # Enable dev routes for dashboard and mailbox
-config :wanderer_ops, dev_routes: true, token_signing_secret: "OjcFmF2ZFlLlJOGiE0MCPVTTeGsx3GLN"
+# config :wanderer_ops, dev_routes: true, token_signing_secret: "OjcFmF2ZFlLlJOGiE0MCPVTTeGsx3GLN"
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :console, format: "[$level] $message\n"
