@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wanderer Ops | Intelligence Operations Platform</title>
+    <meta name="description" content="Wanderer Ops - Advanced real-time operations monitoring and intelligence platform for EVE Online wormhole mapping and character tracking.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            primary: '#00ff41',
+                            secondary: '#0abdc6',
+                            dark: '#0d0d0d',
+                            darker: '#050505',
+                            accent: '#ff0040',
+                            warning: '#ffcc00',
+                            muted: '#1a1a2e',
+                            terminal: '#0a0a0a'
+                        }
+                    },
+                    fontFamily: {
+                        mono: ['JetBrains Mono', 'Fira Code', 'Monaco', 'Consolas', 'monospace'],
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                        'scan': 'scan 3s linear infinite',
+                        'blink': 'blink 1s step-end infinite',
+                        'typewriter': 'typewriter 2s steps(40) 1s forwards'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+        @keyframes glow {
+            from { text-shadow: 0 0 5px #00ff41, 0 0 10px #00ff41, 0 0 15px #00ff41; }
+            to { text-shadow: 0 0 10px #00ff41, 0 0 20px #00ff41, 0 0 30px #00ff41; }
+        }
+
+        @keyframes scan {
+            0% { transform: translateY(-100%); opacity: 0; }
+            50% { opacity: 0.5; }
+            100% { transform: translateY(100%); opacity: 0; }
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        @keyframes typewriter {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        .terminal-bg {
+            background: linear-gradient(180deg, #0a0a0a 0%, #0d0d0d 50%, #0a0a0a 100%);
+        }
+
+        .grid-overlay {
+            background-image:
+                linear-gradient(rgba(0, 255, 65, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 65, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        .scanline {
+            background: linear-gradient(
+                to bottom,
+                transparent 50%,
+                rgba(0, 0, 0, 0.1) 50%
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        .cyber-border {
+            border: 1px solid rgba(0, 255, 65, 0.3);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.1), inset 0 0 10px rgba(0, 255, 65, 0.05);
+        }
+
+        .terminal-window {
+            background: rgba(10, 10, 10, 0.95);
+            border: 1px solid rgba(0, 255, 65, 0.2);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.1), 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+        }
+
+        .code-block {
+            background: #0a0a0a;
+            border-left: 3px solid #00ff41;
+        }
+
+        pre code {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .highlight-line {
+            background: rgba(0, 255, 65, 0.1);
+        }
+
+        ::selection {
+            background: rgba(0, 255, 65, 0.3);
+            color: #fff;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0d0d0d;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #00ff41;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00cc33;
+        }
+    </style>
+</head>
+<body class="bg-cyber-darker text-gray-300 font-mono terminal-bg min-h-screen">
+    <!-- Scan line overlay -->
+    <div class="fixed inset-0 scanline pointer-events-none z-50 opacity-30"></div>
+
+    <!-- Grid overlay -->
+    <div class="fixed inset-0 grid-overlay pointer-events-none z-40"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-30 bg-cyber-darker/90 backdrop-blur-sm border-b border-cyber-primary/20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 relative">
+                        <div class="absolute inset-0 bg-cyber-primary/20 rounded animate-pulse-slow"></div>
+                        <svg class="w-8 h-8 text-cyber-primary" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                        </svg>
+                    </div>
+                    <span class="text-cyber-primary font-bold text-lg tracking-wider">WANDERER_OPS</span>
+                </div>
+                <div class="hidden md:flex items-center space-x-8 text-sm">
+                    <a href="#features" class="hover:text-cyber-primary transition-colors">[FEATURES]</a>
+                    <a href="#architecture" class="hover:text-cyber-primary transition-colors">[ARCHITECTURE]</a>
+                    <a href="#deployment" class="hover:text-cyber-primary transition-colors">[DEPLOYMENT]</a>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-cyber-primary text-xs animate-blink">_</span>
+                    <span class="text-xs text-gray-500">v1.0.0</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Map Visualization Background -->
+    <canvas id="mapCanvas" class="fixed inset-0 z-0 pointer-events-none"></canvas>
+
+    <!-- Hero Section -->
+    <section class="relative z-10 min-h-screen flex items-center justify-center pt-16 overflow-hidden">
+        <div class="absolute inset-0 overflow-hidden">
+            <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-cyber-primary/5 rounded-full blur-3xl animate-pulse-slow"></div>
+            <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyber-secondary/5 rounded-full blur-3xl animate-pulse-slow delay-1000"></div>
+        </div>
+
+        <div class="relative z-10 max-w-5xl mx-auto px-4 text-center">
+            <div class="mb-6">
+                <span class="inline-block px-4 py-1 text-xs border border-cyber-primary/30 text-cyber-primary rounded-full mb-4">
+                    // SECURE OPERATIONS PLATFORM
+                </span>
+            </div>
+
+            <h1 class="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+                <span class="text-white">WANDERER</span><span class="text-cyber-primary animate-glow">_OPS</span>
+            </h1>
+
+            <p class="text-xl md:text-2xl text-gray-400 mb-4 max-w-3xl mx-auto">
+                Real-time intelligence operations platform for
+            </p>
+            <p class="text-lg md:text-xl text-cyber-secondary mb-8">
+                wormhole mapping
+            </p>
+
+            <div class="terminal-window rounded-lg p-4 max-w-2xl mx-auto mb-12">
+                <div class="flex items-center space-x-2 mb-3 border-b border-cyber-primary/20 pb-2">
+                    <div class="w-3 h-3 rounded-full bg-cyber-accent"></div>
+                    <div class="w-3 h-3 rounded-full bg-cyber-warning"></div>
+                    <div class="w-3 h-3 rounded-full bg-cyber-primary"></div>
+                    <span class="text-xs text-gray-500 ml-2">terminal@wanderer-ops</span>
+                </div>
+                <div class="text-left text-sm">
+                    <p class="text-gray-500">$ docker compose up -d</p>
+                    <p class="text-cyber-primary">[+] Running wanderer-ops...</p>
+                    <p class="text-cyber-secondary">[*] Phoenix endpoint: http://localhost:8001</p>
+                    <p class="text-gray-400">[*] Database connected: PostgreSQL</p>
+                    <p class="text-cyber-primary">[+] System operational <span class="animate-blink">_</span></p>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6">
+                <a href="#deployment" class="px-8 py-3 bg-cyber-primary text-cyber-darker font-bold rounded hover:bg-cyber-primary/80 transition-all hover:shadow-lg hover:shadow-cyber-primary/20">
+                    DEPLOY NOW
+                </a>
+                <a href="#features" class="px-8 py-3 border border-cyber-primary/50 text-cyber-primary rounded hover:bg-cyber-primary/10 transition-all">
+                    LEARN MORE
+                </a>
+            </div>
+        </div>
+
+        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+            <svg class="w-6 h-6 text-cyber-primary/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+            </svg>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-24 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <span class="text-cyber-primary text-sm tracking-widest">// CAPABILITIES</span>
+                <h2 class="text-4xl font-bold text-white mt-4">SYSTEM FEATURES</h2>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Feature Card 1 -->
+                <div class="cyber-border rounded-lg p-6 bg-cyber-dark/50 hover:bg-cyber-dark/70 transition-all group">
+                    <div class="w-12 h-12 bg-cyber-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-cyber-primary/20 transition-colors">
+                        <svg class="w-6 h-6 text-cyber-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Real-time Mapping</h3>
+                    <p class="text-gray-400 text-sm">Interactive wormhole chain visualization with G6 graph engine. Track connections, and system status in real-time.</p>
+                </div>
+
+                <!-- Feature Card 2 -->
+                <div class="cyber-border rounded-lg p-6 bg-cyber-dark/50 hover:bg-cyber-dark/70 transition-all group">
+                    <div class="w-12 h-12 bg-cyber-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-cyber-primary/20 transition-colors">
+                        <svg class="w-6 h-6 text-cyber-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Multiple Maps Sync</h3>
+                    <p class="text-gray-400 text-sm">Detect bordered systems, auto-set labels.</p>
+                </div>
+
+                <!-- Feature Card 6 -->
+                <div class="cyber-border rounded-lg p-6 bg-cyber-dark/50 hover:bg-cyber-dark/70 transition-all group">
+                    <div class="w-12 h-12 bg-cyber-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-cyber-primary/20 transition-colors">
+                        <svg class="w-6 h-6 text-cyber-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Docker Ready</h3>
+                    <p class="text-gray-400 text-sm">Multi-stage Docker builds with optimized production images. Deploy anywhere with Docker Compose or orchestration platforms.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Section -->
+    <section id="architecture" class="py-24 bg-cyber-dark/30 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <span class="text-cyber-primary text-sm tracking-widest">// SYSTEM DESIGN</span>
+                <h2 class="text-4xl font-bold text-white mt-4">ARCHITECTURE</h2>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-12 items-start">
+                <div>
+                    <h3 class="text-2xl font-bold text-white mb-6 flex items-center">
+                        <span class="text-cyber-primary mr-2">&gt;</span> Tech Stack
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="cyber-border rounded p-4 bg-cyber-terminal">
+                            <div class="flex items-center justify-between">
+                                <span class="text-cyber-primary font-bold">Backend</span>
+                                <span class="text-xs text-gray-500">Elixir/OTP</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mt-2">Phoenix Framework + Ash Framework + Ecto</p>
+                        </div>
+                        <div class="cyber-border rounded p-4 bg-cyber-terminal">
+                            <div class="flex items-center justify-between">
+                                <span class="text-cyber-secondary font-bold">Frontend</span>
+                                <span class="text-xs text-gray-500">React/TypeScript</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mt-2">LiveReact + Vite + TailwindCSS + G6 Graphs</p>
+                        </div>
+                        <div class="cyber-border rounded p-4 bg-cyber-terminal">
+                            <div class="flex items-center justify-between">
+                                <span class="text-cyber-warning font-bold">Database</span>
+                                <span class="text-xs text-gray-500">PostgreSQL</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mt-2">Ecto migrations + Ash data layer</p>
+                        </div>
+                        <div class="cyber-border rounded p-4 bg-cyber-terminal">
+                            <div class="flex items-center justify-between">
+                                <span class="text-cyber-accent font-bold">Real-time</span>
+                                <span class="text-xs text-gray-500">WebSockets</span>
+                            </div>
+                            <p class="text-gray-400 text-sm mt-2">Phoenix PubSub + LiveView channels</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-2xl font-bold text-white mb-6 flex items-center">
+                        <span class="text-cyber-primary mr-2">&gt;</span> Project Structure
+                    </h3>
+                    <div class="terminal-window rounded-lg p-4 text-sm overflow-x-auto">
+                        <pre class="text-gray-400"><code><span class="text-cyber-primary">wanderer_ops/</span>
+├── <span class="text-cyber-secondary">lib/</span>
+│   ├── <span class="text-white">wanderer_ops/</span>           <span class="text-gray-600"># Core business logic</span>
+│   │   ├── api/                 <span class="text-gray-600"># Ash API & resources</span>
+│   │   ├── map/                 <span class="text-gray-600"># Map services</span>
+│   │   └── repositories/        <span class="text-gray-600"># Data access</span>
+│   └── <span class="text-white">wanderer_ops_web/</span>       <span class="text-gray-600"># Phoenix web layer</span>
+│       ├── components/          <span class="text-gray-600"># UI components</span>
+│       ├── live/                <span class="text-gray-600"># LiveView modules</span>
+│       └── controllers/         <span class="text-gray-600"># HTTP controllers</span>
+├── <span class="text-cyber-secondary">assets/</span>                      <span class="text-gray-600"># Frontend (React/TS)</span>
+│   └── react/
+│       ├── features/            <span class="text-gray-600"># Feature components</span>
+│       ├── state/               <span class="text-gray-600"># State management</span>
+│       └── hooks/               <span class="text-gray-600"># Custom hooks</span>
+├── <span class="text-cyber-secondary">config/</span>                      <span class="text-gray-600"># App configuration</span>
+├── <span class="text-cyber-secondary">priv/</span>                        <span class="text-gray-600"># Migrations & seeds</span>
+└── <span class="text-cyber-warning">docker-compose.yml</span>         <span class="text-gray-600"># Docker orchestration</span></code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Deployment Section -->
+    <section id="deployment" class="py-24 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <span class="text-cyber-primary text-sm tracking-widest">// QUICK START</span>
+                <h2 class="text-4xl font-bold text-white mt-4">DEPLOYMENT</h2>
+            </div>
+
+            <div class="max-w-4xl mx-auto">
+                <!-- Step 1 -->
+                <div class="mb-8">
+                    <div class="flex items-center mb-4">
+                        <span class="w-8 h-8 bg-cyber-primary text-cyber-darker font-bold rounded flex items-center justify-center mr-4">1</span>
+                        <h3 class="text-xl font-bold text-white">Clone the repository</h3>
+                    </div>
+                    <div class="code-block rounded p-4 ml-12">
+                        <code class="text-cyber-primary">git clone https://github.com/wanderer-industries/wanderer-ops.git</code>
+                    </div>
+                    <div class="code-block rounded p-4 ml-12">
+                        <code class="text-cyber-primary">cd wanderer-ops</code>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="mb-8">
+                    <div class="flex items-center mb-4">
+                        <span class="w-8 h-8 bg-cyber-primary text-cyber-darker font-bold rounded flex items-center justify-center mr-4">2</span>
+                        <h3 class="text-xl font-bold text-white">Configure environment</h3>
+                    </div>
+                    <div class="code-block rounded p-4 ml-12">
+                        <code class="text-gray-400"><span class="text-gray-600"># Update env setting in docker-compose.yml</span>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="mb-8">
+                    <div class="flex items-center mb-4">
+                        <span class="w-8 h-8 bg-cyber-primary text-cyber-darker font-bold rounded flex items-center justify-center mr-4">3</span>
+                        <h3 class="text-xl font-bold text-white">Start with Docker Compose</h3>
+                    </div>
+                    <div class="code-block rounded p-4 ml-12">
+                        <code class="text-gray-400"><span class="text-gray-600"># Build and start all services</span>
+<div class="text-cyber-primary">docker compose build</div>
+<div class="text-cyber-primary">docker compose up -d</div>
+
+<div class="text-gray-600"># View logs</div>
+<span class="text-cyber-primary">docker compose logs -f wanderer-ops</span>
+
+<div class="text-gray-600"># Check status</div>
+<span class="text-cyber-primary">docker compose ps</span></code>
+                    </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="mb-8">
+                    <div class="flex items-center mb-4">
+                        <span class="w-8 h-8 bg-cyber-primary text-cyber-darker font-bold rounded flex items-center justify-center mr-4">4</span>
+                        <h3 class="text-xl font-bold text-white">Access the application</h3>
+                    </div>
+                    <div class="code-block rounded p-4 ml-12">
+                        <code class="text-gray-400"><span class="text-gray-600"># Application will be available at:</span>
+<span class="text-cyber-secondary">http://localhost:8001</span>
+
+<div class="text-gray-600"># Default admin credentials (change in production!):</div>
+<div class="text-cyber-warning">Username: admin</div>
+<div class="text-cyber-warning">Password: (set via WANDERER_OPS_ADMIN_PASSWORD)</div></code>
+                    </div>
+                </div>
+
+                <div class="cyber-border rounded-lg p-6 bg-cyber-dark/50 mt-12">
+                    <h4 class="text-lg font-bold text-cyber-warning mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                        Security Notice
+                    </h4>
+                    <ul class="text-gray-400 text-sm space-y-2">
+                        <li class="flex items-start">
+                            <span class="text-cyber-accent mr-2">&gt;</span>
+                            Always generate a new&nbsp;<code class="text-cyber-primary">SECRET_KEY_BASE</code>&nbsp;for production
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-cyber-accent mr-2">&gt;</span>
+                            Set strong&nbsp;<code class="text-cyber-primary">WANDERER_OPS_ADMIN_PASSWORD</code>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-cyber-accent mr-2">&gt;</span>
+                            Use SSL/TLS in production environments
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-cyber-accent mr-2">&gt;</span>
+                            Restrict database access to application container only
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 border-t border-cyber-primary/20 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row items-center justify-between">
+                <div class="flex items-center space-x-3 mb-4 md:mb-0">
+                    <svg class="w-6 h-6 text-cyber-primary" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    </svg>
+                    <span class="text-cyber-primary font-bold">WANDERER_OPS</span>
+                </div>
+                <div class="flex items-center space-x-6 text-sm text-gray-500">
+                    <a href="https://github.com/wanderer-industries/wanderer-ops" class="hover:text-cyber-primary transition-colors">GitHub</a>
+                    <span class="text-gray-700">|</span>
+                    <span>Built with Phoenix + Elixir</span>
+                    <span class="text-gray-700">|</span>
+                    <span class="text-cyber-primary">2025</span>
+                </div>
+            </div>
+            <div class="mt-8 text-center text-xs text-gray-600">
+                <p>// System operational. All connections secure.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Smooth scroll behavior -->
+    <script>
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+
+    <!-- Map Visualization Animation -->
+    <script>
+        (function() {
+            const canvas = document.getElementById('mapCanvas');
+            const ctx = canvas.getContext('2d');
+
+            let width, height;
+            let nodes = [];
+            let connections = [];
+            let particles = [];
+
+            // Node types with colors inspired by the EVE map (muted/subtle)
+            const nodeTypes = {
+                hub: { color: '#8b3a3a', glowColor: 'rgba(139, 58, 58, 0.25)', minSize: 25, maxSize: 40 },
+                major: { color: '#9a5a32', glowColor: 'rgba(154, 90, 50, 0.2)', minSize: 18, maxSize: 28 },
+                minor: { color: '#7a6a28', glowColor: 'rgba(122, 106, 40, 0.15)', minSize: 12, maxSize: 20 },
+                distant: { color: '#8a7a48', glowColor: 'rgba(138, 122, 72, 0.1)', minSize: 8, maxSize: 14 }
+            };
+
+            function resize() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+                initializeNodes();
+            }
+
+            function initializeNodes() {
+                nodes = [];
+                connections = [];
+                particles = [];
+
+                // Create nodes spread across the canvas
+                const nodeCount = Math.floor((width * height) / 80000) + 8;
+
+                for (let i = 0; i < nodeCount; i++) {
+                    const typeRoll = Math.random();
+                    let type;
+                    if (typeRoll < 0.1) type = 'hub';
+                    else if (typeRoll < 0.3) type = 'major';
+                    else if (typeRoll < 0.6) type = 'minor';
+                    else type = 'distant';
+
+                    const nodeType = nodeTypes[type];
+                    const size = nodeType.minSize + Math.random() * (nodeType.maxSize - nodeType.minSize);
+
+                    nodes.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        size: size,
+                        baseSize: size,
+                        type: type,
+                        color: nodeType.color,
+                        glowColor: nodeType.glowColor,
+                        pulse: Math.random() * Math.PI * 2,
+                        pulseSpeed: 0.02 + Math.random() * 0.03,
+                        vx: (Math.random() - 0.5) * 0.15,
+                        vy: (Math.random() - 0.5) * 0.15,
+                        activity: Math.floor(Math.random() * 100) + 1,
+                        secStatus: (Math.random() * 1.0).toFixed(1)
+                    });
+                }
+
+                // Create connections between nearby nodes
+                for (let i = 0; i < nodes.length; i++) {
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        const dx = nodes[j].x - nodes[i].x;
+                        const dy = nodes[j].y - nodes[i].y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+
+                        // Connect nodes within certain distance, with preference for hub connections
+                        const maxDist = (nodes[i].type === 'hub' || nodes[j].type === 'hub') ? 350 : 250;
+
+                        if (distance < maxDist && Math.random() > 0.4) {
+                            connections.push({
+                                from: i,
+                                to: j,
+                                progress: Math.random(),
+                                speed: 0.002 + Math.random() * 0.003,
+                                dashOffset: 0,
+                                active: Math.random() > 0.3
+                            });
+                        }
+                    }
+                }
+
+                // Initialize background particles
+                for (let i = 0; i < 50; i++) {
+                    particles.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        size: Math.random() * 1.5 + 0.5,
+                        alpha: Math.random() * 0.3 + 0.1,
+                        vx: (Math.random() - 0.5) * 0.2,
+                        vy: (Math.random() - 0.5) * 0.2
+                    });
+                }
+            }
+
+            function drawConnection(conn) {
+                const from = nodes[conn.from];
+                const to = nodes[conn.to];
+
+                ctx.save();
+
+                // Draw main connection line with dashed style
+                ctx.strokeStyle = conn.active ? 'rgba(100, 60, 60, 0.35)' : 'rgba(60, 45, 45, 0.2)';
+                ctx.lineWidth = conn.active ? 1.5 : 1;
+                ctx.setLineDash([8, 4]);
+                ctx.lineDashOffset = conn.dashOffset;
+
+                ctx.beginPath();
+                ctx.moveTo(from.x, from.y);
+                ctx.lineTo(to.x, to.y);
+                ctx.stroke();
+
+                // Draw animated pulse along active connections
+                if (conn.active) {
+                    const px = from.x + (to.x - from.x) * conn.progress;
+                    const py = from.y + (to.y - from.y) * conn.progress;
+
+                    const gradient = ctx.createRadialGradient(px, py, 0, px, py, 4);
+                    gradient.addColorStop(0, 'rgba(160, 90, 90, 0.4)');
+                    gradient.addColorStop(1, 'rgba(160, 90, 90, 0)');
+
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(px, py, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                ctx.restore();
+            }
+
+            function drawNode(node) {
+                ctx.save();
+
+                // Outer glow (subtle)
+                const glowSize = node.size * 2;
+                const glowGradient = ctx.createRadialGradient(
+                    node.x, node.y, node.size * 0.6,
+                    node.x, node.y, glowSize
+                );
+                glowGradient.addColorStop(0, node.glowColor);
+                glowGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+                ctx.fillStyle = glowGradient;
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, glowSize, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Node body with gradient
+                const bodyGradient = ctx.createRadialGradient(
+                    node.x - node.size * 0.3, node.y - node.size * 0.3, 0,
+                    node.x, node.y, node.size
+                );
+                bodyGradient.addColorStop(0, lightenColor(node.color, 40));
+                bodyGradient.addColorStop(0.5, node.color);
+                bodyGradient.addColorStop(1, darkenColor(node.color, 30));
+
+                ctx.fillStyle = bodyGradient;
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, node.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Inner highlight ring
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, node.size * 0.7, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Activity number in center (for larger nodes)
+                if (node.size > 15) {
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                    ctx.font = `bold ${Math.floor(node.size * 0.55)}px JetBrains Mono, monospace`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(node.activity.toString(), node.x, node.y);
+                }
+
+                ctx.restore();
+            }
+
+            function drawParticle(particle) {
+                ctx.fillStyle = `rgba(200, 200, 200, ${particle.alpha * 0.5})`;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            function lightenColor(color, percent) {
+                const num = parseInt(color.replace('#', ''), 16);
+                const amt = Math.round(2.55 * percent * 0.6); // reduced lightening
+                const R = Math.min(255, (num >> 16) + amt);
+                const G = Math.min(255, ((num >> 8) & 0x00FF) + amt);
+                const B = Math.min(255, (num & 0x0000FF) + amt);
+                return `rgb(${R}, ${G}, ${B})`;
+            }
+
+            function darkenColor(color, percent) {
+                const num = parseInt(color.replace('#', ''), 16);
+                const amt = Math.round(2.55 * percent * 0.6); // reduced darkening
+                const R = Math.max(0, (num >> 16) - amt);
+                const G = Math.max(0, ((num >> 8) & 0x00FF) - amt);
+                const B = Math.max(0, (num & 0x0000FF) - amt);
+                return `rgb(${R}, ${G}, ${B})`;
+            }
+
+            function update() {
+                // Update nodes
+                nodes.forEach(node => {
+                    // Pulsing effect
+                    node.pulse += node.pulseSpeed;
+                    node.size = node.baseSize + Math.sin(node.pulse) * 2;
+
+                    // Slow drift movement
+                    node.x += node.vx;
+                    node.y += node.vy;
+
+                    // Bounce off edges with padding
+                    const padding = 50;
+                    if (node.x < padding || node.x > width - padding) node.vx *= -1;
+                    if (node.y < padding || node.y > height - padding) node.vy *= -1;
+
+                    // Keep within bounds
+                    node.x = Math.max(padding, Math.min(width - padding, node.x));
+                    node.y = Math.max(padding, Math.min(height - padding, node.y));
+                });
+
+                // Update connections
+                connections.forEach(conn => {
+                    conn.dashOffset -= 0.5;
+                    if (conn.active) {
+                        conn.progress += conn.speed;
+                        if (conn.progress > 1) conn.progress = 0;
+                    }
+                });
+
+                // Update particles
+                particles.forEach(particle => {
+                    particle.x += particle.vx;
+                    particle.y += particle.vy;
+
+                    // Wrap around screen
+                    if (particle.x < 0) particle.x = width;
+                    if (particle.x > width) particle.x = 0;
+                    if (particle.y < 0) particle.y = height;
+                    if (particle.y > height) particle.y = 0;
+                });
+            }
+
+            function draw() {
+                // Clear canvas completely each frame
+                ctx.clearRect(0, 0, width, height);
+
+                // Draw particles first (background)
+                particles.forEach(drawParticle);
+
+                // Draw connections
+                connections.forEach(drawConnection);
+
+                // Draw nodes on top
+                nodes.forEach(drawNode);
+            }
+
+            function animate() {
+                update();
+                draw();
+                requestAnimationFrame(animate);
+            }
+
+            // Initialize
+            window.addEventListener('resize', resize);
+            resize();
+
+            // Clear canvas fully once at start
+            ctx.fillStyle = '#050505';
+            ctx.fillRect(0, 0, width, height);
+
+            animate();
+        })();
+    </script>
+</body>
+</html>
