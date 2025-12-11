@@ -16,44 +16,50 @@ const LicenseStatus: React.FC<LicenseStatusProps> = ({ licenseState }) => {
   const hasError = !!licenseState?.error_message;
 
   return (
-    <div className="flex items-center gap-4">
-      <span className="text-gray-400 text-sm">License Status:</span>
+    <div className="flex items-center gap-3">
+      <span className="text-[10px] font-mono uppercase tracking-wider text-cyber-primary/60">License:</span>
 
       {!!licenseState && (
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {/* Valid Status Icon */}
-          <div className="flex items-center gap-1.5">
-            <div
-              className={`w-5 h-5 ${
-                licenseState?.valid ? 'hero-check-circle-solid text-green-500' : 'hero-x-circle-solid text-red-500'
-              }`}
-              title={licenseState?.valid ? 'License valid' : 'License invalid'}
-            />
-          </div>
+          <div
+            className={`w-4 h-4 ${
+              licenseState?.valid
+                ? 'hero-check-circle-solid text-cyber-accent shadow-[0_0_6px_rgba(0,255,136,0.5)]'
+                : 'hero-x-circle-solid text-cyber-danger shadow-[0_0_6px_rgba(255,51,102,0.5)]'
+            }`}
+            title={licenseState?.valid ? 'License valid' : 'License invalid'}
+          />
 
           {/* Bot Assigned Status Icon */}
-          <div className="flex items-center gap-1.5">
-            <div
-              className={`w-5 h-5 ${
-                licenseState?.bot_assigned ? 'hero-cpu-chip-solid text-blue-500' : 'hero-user-solid text-gray-500'
-              }`}
-              title={licenseState?.bot_assigned ? 'Bot assigned' : 'No bot assigned'}
-            />
-          </div>
+          <div
+            className={`w-4 h-4 ${
+              licenseState?.bot_assigned
+                ? 'hero-cpu-chip-solid text-cyber-secondary shadow-[0_0_6px_rgba(10,132,255,0.5)]'
+                : 'hero-user-solid text-cyber-primary/40'
+            }`}
+            title={licenseState?.bot_assigned ? 'Bot assigned' : 'No bot assigned'}
+          />
 
           {/* Error Icon with Tooltip */}
           {hasError && (
             <div className="flex items-center relative">
               <div
-                className="w-5 h-5 hero-exclamation-circle-solid text-red-500 cursor-help"
+                className="w-4 h-4 hero-exclamation-circle-solid text-cyber-danger cursor-help
+                           shadow-[0_0_6px_rgba(255,51,102,0.5)] animate-pulse"
                 onMouseEnter={() => setShowTooltip(true)}
                 onMouseLeave={() => setShowTooltip(false)}
               />
 
               {showTooltip && (
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded shadow-lg whitespace-nowrap z-50 border border-red-500/50">
+                <div
+                  className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2
+                               bg-cyber-dark-800/95 backdrop-blur-sm text-cyber-danger text-[10px] font-mono
+                               rounded border border-cyber-danger/50 shadow-[0_0_20px_rgba(255,51,102,0.2)]
+                               whitespace-nowrap z-50"
+                >
                   <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px">
-                    <div className="border-4 border-transparent border-t-gray-900" />
+                    <div className="border-4 border-transparent border-t-cyber-dark-800" />
                   </div>
                   {licenseState.error_message}
                 </div>
@@ -63,7 +69,7 @@ const LicenseStatus: React.FC<LicenseStatusProps> = ({ licenseState }) => {
         </div>
       )}
 
-      {!licenseState && <div>Not configured</div>}
+      {!licenseState && <span className="text-[10px] font-mono text-cyber-primary/40">Not configured</span>}
     </div>
   );
 };

@@ -107,6 +107,13 @@ export const useDashboard = ({
   }, [serverMaps]);
 
   useEffect(() => {
+    console.log('[useDashboard] mapCachedData changed:', {
+      keys: Object.keys(mapCachedData || {}),
+      connectionCounts: Object.entries(mapCachedData || {}).map(([k, v]: [string, any]) => ({
+        mapId: k,
+        connections: v?.connections?.length || 0,
+      })),
+    });
     setMapData(mapCachedData);
   }, [mapCachedData]);
 

@@ -145,6 +145,22 @@ defmodule WandererOpsWeb.DashboardLive do
     Logger.info("DashboardLive received :data_updated event, re-running border detection")
     {:ok, map_cached_data} = WandererOps.Map.Utils.prepare_cached_data(maps)
 
+    # Debug: Log first system's position to verify cache data
+    first_system =
+      map_cached_data
+      |> Enum.find_value(fn {_map_id, data} ->
+        case data[:systems] do
+          [system | _] -> system
+          _ -> nil
+        end
+      end)
+
+    if first_system do
+      Logger.info(
+        "DashboardLive first system after update: position_x=#{first_system["position_x"]}, position_y=#{first_system["position_y"]}"
+      )
+    end
+
     {:noreply, socket |> assign(map_cached_data: map_cached_data)}
   end
 

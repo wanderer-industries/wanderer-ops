@@ -190,7 +190,6 @@ defmodule WandererOps.Map.Server.Impl do
         {:ok, system_info} when not is_nil(system_info) ->
           system_info =
             system_info
-            |> Map.drop(["position_x", "position_y"])
             |> Map.put("update_existing", true)
 
           state
@@ -221,6 +220,22 @@ defmodule WandererOps.Map.Server.Impl do
       ) do
     {:ok, main_map_id} = Cachex.get(:maps_shared_cache, "main")
 
+    # Update cache for this map (regardless of whether it's main or not)
+    {systems, connections} = get_cached_data(map.id)
+
+    updated_systems =
+      systems
+      |> Enum.map(fn system ->
+        if system["solar_system_id"] == solar_system_id do
+          Map.merge(system, system_info)
+        else
+          system
+        end
+      end)
+
+    update_cache(map.id, updated_systems, connections)
+
+    # If this is the main map, also broadcast to other maps
     if not is_nil(main_map_id) && map.id == main_map_id do
       {:ok, maps} = WandererOps.Api.Map.read()
 
@@ -230,20 +245,6 @@ defmodule WandererOps.Map.Server.Impl do
           broadcast!(map_url, :update_system, %{"payload" => system_info})
         end
       end)
-
-      {systems, connections} = get_cached_data(map.id)
-
-      updated_systems =
-        systems
-        |> Enum.map(fn system ->
-          if system["solar_system_id"] == solar_system_id do
-            Map.merge(system, system_info)
-          else
-            system
-          end
-        end)
-
-      update_cache(map.id, updated_systems, connections)
     end
 
     state
@@ -267,7 +268,6 @@ defmodule WandererOps.Map.Server.Impl do
         {:ok, system_info} when not is_nil(system_info) ->
           system_info =
             system_info
-            |> Map.drop(["position_x", "position_y"])
             |> Map.put("update_existing", true)
 
           state
@@ -365,47 +365,38 @@ defmodule WandererOps.Map.Server.Impl do
         },
         %{map: map} = state
       ) do
-    {:ok, main_map_id} = Cachex.get(:maps_shared_cache, "main")
+    {:ok, _main_map_id} = Cachex.get(:maps_shared_cache, "main")
 
     {systems, connections} = get_cached_data(map.id)
+
+    # Check if connected systems exist in cache, fetch missing ones from API
+    system_ids = systems |> Enum.map(& &1["solar_system_id"]) |> MapSet.new()
+
+    systems_to_add =
+      [solar_system_source, solar_system_target]
+      |> Enum.reject(&MapSet.member?(system_ids, &1))
+      |> Enum.map(fn system_id ->
+        Logger.info("Fetching missing system #{system_id} for connection_added event")
+
+        case get_system(state, system_id) do
+          {:ok, system} when not is_nil(system) ->
+            system
+
+          _ ->
+            Logger.warning("Failed to fetch system #{system_id} for connection")
+            nil
+        end
+      end)
+      |> Enum.reject(&is_nil/1)
+
+    updated_systems = systems_to_add ++ systems
 
     connection =
       connection
       |> normalize_connection_field("solar_system_source_id", "solar_system_source")
       |> normalize_connection_field("solar_system_target_id", "solar_system_target")
 
-    update_cache(map.id, systems, [connection | connections])
-
-    # if not is_nil(main_map_id) && map.id == main_map_id do
-    #   # Call implementation directly to avoid self-calling GenServer
-    #   get_connection(state, solar_system_source, solar_system_target)
-    #   |> case do
-    #     {:ok, connection_info} when not is_nil(connection_info) ->
-    #       connection_info =
-    #         connection_info
-    #         |> Map.drop([
-    #           "id",
-    #           "inserted_at",
-    #           "updated_at",
-    #           "map_id"
-    #         ])
-    #         |> Map.put("update_existing", true)
-
-    #       {:ok, maps} = WandererOps.Api.Map.read()
-
-    #       maps
-    #       |> Enum.each(fn %{id: map_id, map_url: map_url} ->
-    #         if map_id != main_map_id do
-    #           broadcast!(map_url, :add_connection, connection_info)
-    #         end
-    #       end)
-
-    #       :ok
-
-    #     _error ->
-    #       :ok
-    #   end
-    # end
+    update_cache(map.id, updated_systems, [connection | connections])
 
     state
   end

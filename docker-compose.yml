@@ -1,0 +1,53 @@
+services:
+  wanderer_ops_db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    networks:
+      internal:
+    volumes:
+      - ops-db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=postgres
+
+  wanderer-ops:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    command: sh -c "sleep 10 && /app/bin/migrate && /app/bin/server"
+    depends_on:
+      - wanderer_ops_db
+    networks:
+      internal:
+      web:
+    healthcheck:
+      disable: true
+    ports:
+      - 8001:8001
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    environment:
+      - WEB_APP_URL=http://localhost:8001
+      - WANDERER_OPS_ADMIN_USERNAME=admin
+      - WANDERER_OPS_ADMIN_PASSWORD=password123
+      - SECRET_KEY_BASE=AhhRZBx67jzGEIAJEMtIvjjrpDZiXQ2AoQyU9rsrwxHSP+Rvy1Zcjjg7odBT3IVd
+      - DATABASE_URL=postgresql://postgres:postgres@wanderer_ops_db:5432/postgres
+      - API_TOKEN=d0e554c5-09c7-405d-9063-04e39f3ddbfb
+      - PORT=8001
+      - PHX_HOST=localhost
+      - PHX_SERVER=true
+      - ECTO_IPV6=false
+      - ERL_MAX_PORTS=1024
+
+volumes:
+  ops-db-data:
+    driver: local
+
+networks:
+  internal:
+    internal: true
+  web:
+    external: true
+    name: web

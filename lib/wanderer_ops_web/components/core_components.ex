@@ -40,6 +40,7 @@ defmodule WandererOpsWeb.CoreComponents do
   attr :title, :string, required: false, default: ""
   attr(:show, :boolean, default: false)
   attr(:on_cancel, JS, default: %JS{})
+  attr :class, :string, default: nil
   slot(:inner_block, required: true)
 
   def modal(assigns) do
@@ -51,9 +52,11 @@ defmodule WandererOpsWeb.CoreComponents do
       data-cancel={JS.exec(@on_cancel, "phx-remove")}
       class="relative z-50 hidden"
     >
+      <%!-- Backdrop with cyber grid effect --%>
       <div
         id={"#{@id}-bg"}
-        class="bg-black-50/90 fixed inset-0 transition-opacity"
+        class="fixed inset-0 transition-opacity backdrop-blur-sm"
+        style="background: radial-gradient(ellipse at center, rgba(0, 240, 255, 0.03) 0%, rgba(10, 14, 23, 0.95) 70%);"
         aria-hidden="true"
       />
       <div
@@ -64,32 +67,74 @@ defmodule WandererOpsWeb.CoreComponents do
         aria-modal="true"
         tabindex="0"
       >
-        <div class="flex min-h-full items-center justify-center">
-          <div class="w-full max-w-3xl p-4 sm:p-6 lg:py-8">
+        <div class="flex min-h-full items-center justify-center p-4">
+          <div class={["w-full max-w-lg", @class]}>
             <.focus_wrap
               id={"#{@id}-container"}
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
               phx-key="escape"
               phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
-              class="shadow-zinc-700/10 ring-zinc-700/10 relative hidden bg-[#000000d0] p-4 !pt-14 shadow-lg ring-1 transition"
+              class="cyber-modal relative hidden rounded-lg overflow-hidden transition-all duration-300"
             >
-              <div class="absolute top-6 left-5">
-                <div :if={@title != ""} class="text-white">
-                  {@title}
+              <%!-- Animated border glow --%>
+              <div class="absolute inset-0 rounded-lg cyber-border-glow pointer-events-none"></div>
+
+              <%!-- Main modal content --%>
+              <div class="relative bg-cyber-dark-800/95 backdrop-blur-xl border border-cyber-primary/20 rounded-lg shadow-cyber">
+                <%!-- Scan line effect --%>
+                <div class="absolute inset-0 overflow-hidden rounded-lg pointer-events-none">
+                  <div class="cyber-scan-line"></div>
                 </div>
-              </div>
-              <div class="absolute top-6 right-5">
-                <button
-                  phx-click={JS.exec("data-cancel", to: "##{@id}")}
-                  type="button"
-                  class="-m-3 text-white flex-none p-1 opacity-70 hover:opacity-40"
-                  aria-label={gettext("close")}
+
+                <%!-- Grid pattern overlay --%>
+                <div
+                  class="absolute inset-0 opacity-30 pointer-events-none"
+                  style="background-image: linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px); background-size: 20px 20px;"
                 >
-                  <.icon name="hero-x-mark-solid" class="h-5 w-5" />
-                </button>
-              </div>
-              <div id={"#{@id}-content"}>
-                {render_slot(@inner_block)}
+                </div>
+
+                <%!-- Header --%>
+                <div class="relative flex items-center justify-between px-6 py-4 border-b border-cyber-primary/20">
+                  <%!-- Corner accents --%>
+                  <div class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-cyber-primary">
+                  </div>
+                  <div class="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-cyber-primary">
+                  </div>
+
+                  <div :if={@title != ""} class="flex items-center gap-3">
+                    <div class="cyber-status-dot"></div>
+                    <h3 class="text-lg font-mono font-semibold text-cyber-primary tracking-wide uppercase">
+                      {@title}
+                    </h3>
+                  </div>
+
+                  <button
+                    phx-click={JS.exec("data-cancel", to: "##{@id}")}
+                    type="button"
+                    class="group relative p-2 rounded transition-all duration-200 hover:bg-cyber-primary/10"
+                    aria-label={gettext("close")}
+                  >
+                    <.icon
+                      name="hero-x-mark-solid"
+                      class="h-5 w-5 text-cyber-primary/70 group-hover:text-cyber-primary transition-colors"
+                    />
+                  </button>
+                </div>
+
+                <%!-- Body --%>
+                <div id={"#{@id}-content"} class="relative px-6 py-6">
+                  {render_slot(@inner_block)}
+                </div>
+
+                <%!-- Footer accent --%>
+                <div class="relative h-1 bg-gradient-to-r from-transparent via-cyber-primary/50 to-transparent">
+                </div>
+
+                <%!-- Bottom corner accents --%>
+                <div class="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-cyber-primary">
+                </div>
+                <div class="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-cyber-primary">
+                </div>
               </div>
             </.focus_wrap>
           </div>
@@ -232,6 +277,7 @@ defmodule WandererOpsWeb.CoreComponents do
   """
   attr :type, :string, default: nil
   attr :class, :string, default: nil
+  attr :variant, :string, default: "primary", values: ~w(primary secondary danger)
   attr :rest, :global, include: ~w(disabled form name value)
 
   slot :inner_block, required: true
@@ -241,13 +287,37 @@ defmodule WandererOpsWeb.CoreComponents do
     <button
       type={@type}
       class={[
-        "phx-submit-loading:opacity-75 rounded-lg bg-zinc-900 hover:bg-zinc-700 py-2 px-3",
-        "text-sm font-semibold leading-6 text-white active:text-white/80",
+        "cyber-button group relative overflow-hidden",
+        "px-6 py-3 rounded font-mono text-sm font-semibold tracking-wider uppercase",
+        "transition-all duration-300 ease-out",
+        "disabled:opacity-50 disabled:cursor-not-allowed",
+        "phx-submit-loading:opacity-75",
+        @variant == "primary" &&
+          "bg-cyber-primary/10 text-cyber-primary border border-cyber-primary/50 hover:bg-cyber-primary/20 hover:border-cyber-primary hover:shadow-cyber-sm",
+        @variant == "secondary" &&
+          "bg-cyber-dark-700 text-cyber-primary/70 border border-cyber-primary/20 hover:bg-cyber-dark-600 hover:text-cyber-primary hover:border-cyber-primary/40",
+        @variant == "danger" &&
+          "bg-cyber-danger/10 text-cyber-danger border border-cyber-danger/50 hover:bg-cyber-danger/20 hover:border-cyber-danger hover:shadow-[0_0_20px_rgba(255,51,102,0.3)]",
         @class
       ]}
       {@rest}
     >
-      {render_slot(@inner_block)}
+      <%!-- Button glow effect --%>
+      <span class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700">
+      </span>
+
+      <%!-- Button content --%>
+      <span class="relative flex items-center justify-center gap-2">
+        {render_slot(@inner_block)}
+      </span>
+
+      <%!-- Corner accents --%>
+      <span class="absolute top-0 left-0 w-2 h-2 border-t border-l border-current opacity-50"></span>
+      <span class="absolute top-0 right-0 w-2 h-2 border-t border-r border-current opacity-50"></span>
+      <span class="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-current opacity-50">
+      </span>
+      <span class="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-current opacity-50">
+      </span>
     </button>
     """
   end
@@ -379,20 +449,31 @@ defmodule WandererOpsWeb.CoreComponents do
   # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
     ~H"""
-    <div>
+    <div class="cyber-input-group">
       <.label for={@id}>{@label}</.label>
-      <input
-        type={@type}
-        name={@name}
-        id={@id}
-        value={Phoenix.HTML.Form.normalize_value(@type, @value)}
-        class={[
-          "mt-2 block w-full rounded-lg text-white focus:ring-0 sm:text-sm sm:leading-6 bg-transparent",
-          @errors == [] && "border-zinc-300 focus:border-zinc-400",
-          @errors != [] && "border-rose-400 focus:border-rose-400"
-        ]}
-        {@rest}
-      />
+      <div class="relative mt-2">
+        <input
+          type={@type}
+          name={@name}
+          id={@id}
+          value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+          class={[
+            "cyber-input block w-full rounded px-4 py-3 text-white font-mono text-sm",
+            "bg-cyber-dark-900/80 backdrop-blur-sm",
+            "border border-cyber-primary/30 focus:border-cyber-primary",
+            "focus:ring-1 focus:ring-cyber-primary/50 focus:shadow-cyber-sm",
+            "placeholder:text-cyber-primary/30",
+            "transition-all duration-200",
+            @errors == [] && "border-cyber-primary/30",
+            @errors != [] &&
+              "border-cyber-danger focus:border-cyber-danger focus:ring-cyber-danger/50"
+          ]}
+          {@rest}
+        />
+        <%!-- Input glow effect on focus --%>
+        <div class="absolute inset-0 rounded pointer-events-none opacity-0 transition-opacity duration-200 cyber-input-glow">
+        </div>
+      </div>
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
     """
@@ -406,7 +487,10 @@ defmodule WandererOpsWeb.CoreComponents do
 
   def label(assigns) do
     ~H"""
-    <label for={@for} class="block text-sm font-semibold leading-6 text-white">
+    <label
+      for={@for}
+      class="block text-xs font-mono font-medium tracking-wider uppercase text-cyber-primary/70 mb-1"
+    >
       {render_slot(@inner_block)}
     </label>
     """
@@ -419,8 +503,8 @@ defmodule WandererOpsWeb.CoreComponents do
 
   def error(assigns) do
     ~H"""
-    <p class="mt-3 flex gap-3 text-sm leading-6 text-rose-600">
-      <.icon name="hero-exclamation-circle-mini" class="mt-0.5 h-5 w-5 flex-none" />
+    <p class="mt-2 flex items-center gap-2 text-xs font-mono text-cyber-danger">
+      <.icon name="hero-exclamation-circle-mini" class="h-4 w-4 flex-none" />
       {render_slot(@inner_block)}
     </p>
     """

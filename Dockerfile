@@ -55,8 +55,9 @@ COPY lib lib
 
 COPY assets assets
 
-# compile assets
-RUN rm assets/package-lock.json 2> /dev/null || true
+# compile assets - remove node_modules and lock files to ensure clean install for target architecture
+RUN rm -rf assets/node_modules assets/package-lock.json assets/yarn.lock 2> /dev/null || true
+RUN cd assets && yarn install --frozen-lockfile || yarn install
 RUN mix assets.deploy
 
 # Compile the release

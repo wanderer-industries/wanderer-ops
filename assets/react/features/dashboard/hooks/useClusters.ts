@@ -30,14 +30,14 @@ const useClusters = (nodes: any[]): any[] => {
       return {
         key: map.id,
         type: 'hull',
-        members: groupedNodesByCluster[map.id],
+        members: groupedNodesByCluster[map.id] || [],
         // labelText: map.title,
         ...createStyle(map.color),
       };
     });
 
     return result;
-  }, [maps, nodes]);
+  }, [maps, groupedNodesByCluster]); // Fixed: depend on groupedNodesByCluster instead of nodes
 
   return clusters;
 };

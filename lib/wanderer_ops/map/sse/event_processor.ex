@@ -243,10 +243,13 @@ defmodule WandererOps.Map.EventProcessor do
 
   # Unknown event handler
   @spec handle_unknown_event(String.t(), map(), String.t()) :: :ignored
-  defp handle_unknown_event(unknown_type, _event, map_url) do
+  defp handle_unknown_event(unknown_type, event, map_url) do
+    # Log full payload for unknown events to discover new event types
     Logger.warning("Unknown event type received",
       map_url: map_url,
-      event_type: unknown_type
+      event_type: unknown_type,
+      payload_keys: inspect(Map.keys(Map.get(event, "payload", %{}))),
+      full_payload: inspect(event)
     )
 
     :ignored
