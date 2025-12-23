@@ -8,7 +8,8 @@ defmodule WandererOpsWeb.Endpoint do
     store: :cookie,
     key: "_wanderer_ops_key",
     signing_salt: "MJw6/UGd",
-    same_site: "Lax"
+    same_site: "None",
+    secure: true
   ]
 
   socket "/live", Phoenix.LiveView.Socket,
