@@ -6,5 +6,6 @@ defmodule WandererOps.Api do
 
   resources do
     resource WandererOps.Api.Map
+    resource WandererOps.Api.ShareLink
   end
 end

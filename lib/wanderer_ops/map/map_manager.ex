@@ -27,7 +27,9 @@ defmodule WandererOps.Map.Manager do
         Logger.info("Found MapSupervisor pid: #{inspect(pid)}, terminating...")
 
         # Get the supervisor that owns this child
-        case :supervisor.which_children({:via, Registry, {WandererOps.MapRegistry, {:map_supervisor, map_id}}}) do
+        case :supervisor.which_children(
+               {:via, Registry, {WandererOps.MapRegistry, {:map_supervisor, map_id}}}
+             ) do
           children when is_list(children) ->
             # This is a supervisor, we need to find its parent DynamicSupervisor
             # and terminate it from there

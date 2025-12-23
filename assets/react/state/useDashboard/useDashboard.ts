@@ -26,6 +26,7 @@ type DashboardContext = {
   mapEdges: any[];
   mapData: Record<string, any>;
   mapLicenseState: Record<string, any>;
+  pushEvent: (event: string, payload: any, callback?: (reply: any) => void) => void;
 
   showSetup: (show: boolean) => void;
   editMap: (mapId: string) => Promise<void>;
@@ -130,6 +131,7 @@ export const useDashboard = ({
     edges,
     mapNodes,
     mapEdges,
+    pushEvent,
     editMap,
     startMap,
     stopMap,

@@ -5,4 +5,8 @@ export enum ServerEvent {
   START_MAP = 'ui:start_map',
   STOP_MAP = 'ui:stop_map',
   REMOVE_MAP = 'ui:remove_map',
+  // Share link events
+  CREATE_SHARE_LINK = 'ui:create_share_link',
+  DELETE_SHARE_LINK = 'ui:delete_share_link',
+  GET_SHARE_LINKS = 'ui:get_share_links',
 }

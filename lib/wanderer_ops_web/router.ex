@@ -15,7 +15,10 @@ defmodule WandererOpsWeb.Router do
     plug :fetch_live_flash
     plug :put_root_layout, html: {WandererOpsWeb.Layouts, :root}
     plug :protect_from_forgery
-    plug :put_secure_browser_headers
+    plug :put_secure_browser_headers, %{
+      "content-security-policy" => "frame-ancestors *",
+      "x-frame-options" => ""
+    }
   end
 
   pipeline :landing do
@@ -31,6 +34,13 @@ defmodule WandererOpsWeb.Router do
 
   #   get "/", PageController, :welcome
   # end
+
+  # Public routes for shared map access (no authentication required)
+  scope "/shared", WandererOpsWeb do
+    pipe_through :browser
+
+    live "/:token", SharedMapLive, :index
+  end
 
   scope "/", WandererOpsWeb do
     pipe_through :browser

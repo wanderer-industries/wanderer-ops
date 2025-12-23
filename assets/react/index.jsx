@@ -5,7 +5,9 @@ import '../css/app.css';
 import '../css/variables.css';
 
 import { Dashboard } from '@features/dashboard';
+import { SharedDashboard } from '@features/shared/SharedDashboard';
 
 export default {
   Dashboard,
+  SharedDashboard,
 };

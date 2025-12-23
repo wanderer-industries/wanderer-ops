@@ -1,0 +1,60 @@
+<div class="w-screen h-screen">
+  <%= if @is_valid do %>
+    <!-- Shared dashboard view -->
+    <.live_component
+      module={React.SharedDashboard}
+      id="shared-dashboard"
+      data={@maps}
+      map_cached_data={@map_cached_data}
+      license_state={@license_state}
+      expires_at={DateTime.to_iso8601(@expires_at)}
+    />
+  <% else %>
+    <!-- Error states -->
+    <div class="flex items-center justify-center h-full bg-gray-900">
+      <div class="text-center p-8 max-w-md">
+        <%= if @error_type == :expired do %>
+          <div class="w-16 h-16 mx-auto mb-6 text-yellow-500">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+              />
+            </svg>
+          </div>
+          <h2 class="text-2xl font-mono text-yellow-500 mb-3">Link Expired</h2>
+          <p class="text-gray-400 font-mono text-sm leading-relaxed">
+            This shared dashboard link has expired. Please request a new link from the administrator.
+          </p>
+        <% else %>
+          <div class="w-16 h-16 mx-auto mb-6 text-red-500">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"
+              />
+            </svg>
+          </div>
+          <h2 class="text-2xl font-mono text-red-500 mb-3">Link Not Found</h2>
+          <p class="text-gray-400 font-mono text-sm leading-relaxed">
+            This shared dashboard link is invalid or has been removed.
+          </p>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

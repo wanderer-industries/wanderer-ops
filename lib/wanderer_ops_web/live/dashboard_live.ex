@@ -125,6 +125,80 @@ defmodule WandererOpsWeb.DashboardLive do
      |> assign(maps: maps |> Enum.map(fn map -> map_ui_map(map) end))}
   end
 
+  # Share link management handlers
+
+  def handle_event(
+        "ui:create_share_link",
+        %{"expiresInHours" => hours},
+        socket
+      ) do
+    expires_at = DateTime.add(DateTime.utc_now(), hours * 3600, :second)
+
+    case WandererOps.Api.ShareLink.new(%{expires_at: expires_at}) do
+      {:ok, share_link} ->
+        url = WandererOpsWeb.Endpoint.url() <> "/shared/#{share_link.token}"
+
+        {:reply,
+         %{
+           success: true,
+           link: %{
+             id: share_link.id,
+             token: share_link.token,
+             url: url,
+             expires_at: DateTime.to_iso8601(share_link.expires_at),
+             is_expired: false
+           }
+         }, socket}
+
+      {:error, _} ->
+        {:reply, %{success: false, error: "Failed to create share link"}, socket}
+    end
+  end
+
+  def handle_event(
+        "ui:delete_share_link",
+        %{"linkId" => link_id},
+        socket
+      ) do
+    case WandererOps.Api.ShareLink.by_id(link_id) do
+      {:ok, link} ->
+        WandererOps.Api.ShareLink.destroy(link)
+        {:reply, %{success: true}, socket}
+
+      _ ->
+        {:reply, %{success: false, error: "Link not found"}, socket}
+    end
+  end
+
+  def handle_event(
+        "ui:get_share_links",
+        _params,
+        socket
+      ) do
+    case WandererOps.Api.ShareLink.all_links() do
+      {:ok, links} ->
+        now = DateTime.utc_now()
+
+        links_data =
+          links
+          |> Enum.map(fn link ->
+            %{
+              id: link.id,
+              token: link.token,
+              expires_at: DateTime.to_iso8601(link.expires_at),
+              label: link.label,
+              url: WandererOpsWeb.Endpoint.url() <> "/shared/#{link.token}",
+              is_expired: DateTime.compare(link.expires_at, now) == :lt
+            }
+          end)
+
+        {:reply, %{links: links_data}, socket}
+
+      _ ->
+        {:reply, %{links: []}, socket}
+    end
+  end
+
   @impl true
   def handle_info(
         :refresh_maps,
