@@ -12,6 +12,8 @@ interface ShareLink {
   is_expired: boolean;
   is_snapshot: boolean;
   snapshot_at: string | null;
+  has_password: boolean;
+  description: string | null;
 }
 
 interface ShareLinksModalProps {
@@ -24,6 +26,8 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ isOpen, onClos
   const [links, setLinks] = useState<ShareLink[]>([]);
   const [expirationHours, setExpirationHours] = useState(24);
   const [isSnapshot, setIsSnapshot] = useState(false);
+  const [password, setPassword] = useState('');
+  const [description, setDescription] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -53,9 +57,14 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ isOpen, onClos
       const response = await pushEventAsync(ServerEvent.CREATE_SHARE_LINK, {
         expiresInHours: expirationHours,
         isSnapshot: isSnapshot,
+        password: password || null,
+        description: description || null,
       });
       if (response?.success && response?.link) {
         setLinks(prev => [response.link, ...prev]);
+        // Reset fields after successful creation
+        setPassword('');
+        setDescription('');
       }
     } finally {
       setIsLoading(false);
@@ -172,6 +181,25 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ isOpen, onClos
                 Snapshot captures the current dashboard state. Viewers will see frozen data from this moment.
               </p>
             )}
+
+            {/* Description textarea */}
+            <textarea
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              placeholder="Description (optional) - shown at top of shared view"
+              rows={2}
+              maxLength={500}
+              className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm text-white font-mono resize-none focus:border-orange-500 focus:outline-none placeholder:text-gray-500"
+            />
+
+            {/* Password input */}
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="Password (optional) - protect access to this link"
+              className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm text-white font-mono focus:border-orange-500 focus:outline-none placeholder:text-gray-500"
+            />
           </div>
         </div>
 
@@ -199,6 +227,25 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ isOpen, onClos
                       {link.is_snapshot && (
                         <span className="flex-shrink-0 px-1.5 py-0.5 bg-blue-500/20 border border-blue-500/50 rounded text-[10px] font-mono text-blue-400">
                           SNAPSHOT
+                        </span>
+                      )}
+                      {/* Password lock icon */}
+                      {link.has_password && (
+                        <span className="flex-shrink-0 text-yellow-500" title="Password protected">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="w-4 h-4"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"
+                            />
+                          </svg>
                         </span>
                       )}
                     </div>

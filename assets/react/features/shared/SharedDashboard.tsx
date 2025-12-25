@@ -527,68 +527,70 @@ const SharedHeader = ({
 
   return (
     <header className="fixed w-full z-10">
-      <div className="absolute inset-0 bg-cyber-dark-900/90 backdrop-blur-md border-b border-orange-500/30" />
+      <div className="relative">
+        <div className="absolute inset-0 bg-cyber-dark-900/90 backdrop-blur-md border-b border-orange-500/30" />
 
-      <div className="relative w-full px-2 py-1 flex justify-between items-center">
-        {/* Maps list (read-only) */}
-        <div className="flex items-center gap-1">
-          {maps.map(map => (
-            <div
-              key={map.id}
-              className="relative bg-cyber-dark-800/80 border border-cyber-primary/20 rounded overflow-hidden"
-            >
-              <div className="relative z-10 flex items-center px-1 gap-1.5">
-                {!map.started ? (
-                  <div className="w-1.5 h-1.5 rounded-full bg-cyber-danger shadow-[0_0_4px_rgba(255,51,102,0.6)]" />
-                ) : (
-                  <div className="w-1.5 h-1.5 rounded-full bg-cyber-accent shadow-[0_0_4px_rgba(0,255,136,0.6)] animate-pulse" />
-                )}
-                <span className="text-[9px] font-mono font-medium uppercase text-cyber-primary/80">{map.title}</span>
+        <div className="relative w-full px-2 py-1 flex justify-between items-center">
+          {/* Maps list (read-only) */}
+          <div className="flex items-center gap-1">
+            {maps.map(map => (
+              <div
+                key={map.id}
+                className="relative bg-cyber-dark-800/80 border border-cyber-primary/20 rounded overflow-hidden"
+              >
+                <div className="relative z-10 flex items-center px-1 gap-1.5">
+                  {!map.started ? (
+                    <div className="w-1.5 h-1.5 rounded-full bg-cyber-danger shadow-[0_0_4px_rgba(255,51,102,0.6)]" />
+                  ) : (
+                    <div className="w-1.5 h-1.5 rounded-full bg-cyber-accent shadow-[0_0_4px_rgba(0,255,136,0.6)] animate-pulse" />
+                  )}
+                  <span className="text-[9px] font-mono font-medium uppercase text-cyber-primary/80">{map.title}</span>
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ backgroundColor: map.color }} />
               </div>
-              <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ backgroundColor: map.color }} />
-            </div>
-          ))}
+            ))}
+          </div>
+
+          {/* Status indicators */}
+          <div className="flex items-center gap-2">
+            {/* Snapshot or Live badge */}
+            {isSnapshot ? (
+              <>
+                <div className="flex items-center gap-1.5 px-2 py-0.5 bg-blue-500/20 border border-blue-500/50 rounded">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-3.5 h-3.5 text-blue-400"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"
+                    />
+                  </svg>
+                  <span className="text-[10px] font-mono text-blue-400">SNAPSHOT</span>
+                </div>
+                <span className="text-[9px] font-mono text-gray-400">from {formatSnapshotTime(snapshotAt)}</span>
+              </>
+            ) : (
+              <span className="px-2 py-0.5 bg-green-500/20 border border-green-500/50 rounded text-[10px] font-mono text-green-400">
+                LIVE
+              </span>
+            )}
+            <span className="text-[9px] font-mono text-gray-400">{formatExpiration(expiresAt)}</span>
+          </div>
         </div>
 
-        {/* Status indicators */}
-        <div className="flex items-center gap-2">
-          {/* Snapshot or Live badge */}
-          {isSnapshot ? (
-            <>
-              <div className="flex items-center gap-1.5 px-2 py-0.5 bg-blue-500/20 border border-blue-500/50 rounded">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-3.5 h-3.5 text-blue-400"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"
-                  />
-                </svg>
-                <span className="text-[10px] font-mono text-blue-400">SNAPSHOT</span>
-              </div>
-              <span className="text-[9px] font-mono text-gray-400">from {formatSnapshotTime(snapshotAt)}</span>
-            </>
-          ) : (
-            <span className="px-2 py-0.5 bg-green-500/20 border border-green-500/50 rounded text-[10px] font-mono text-green-400">
-              LIVE
-            </span>
-          )}
-          <span className="text-[9px] font-mono text-gray-400">{formatExpiration(expiresAt)}</span>
-        </div>
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-orange-500/30 to-transparent" />
       </div>
-
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-orange-500/30 to-transparent" />
     </header>
   );
 };
@@ -932,7 +934,46 @@ interface SharedDashboardProps {
   expires_at: string;
   is_snapshot: boolean;
   snapshot_at: string | null;
+  description?: string | null;
 }
+
+// Encrypted message style description shown below header
+const DescriptionCard = ({ description }: { description: string }) => {
+  return (
+    <div className="fixed top-[32px] left-0 right-0 z-[9]">
+      <div className="relative bg-black/90 border-b border-cyan-500/30 overflow-hidden">
+        {/* Scanline effect overlay */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-10"
+          style={{
+            backgroundImage:
+              'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 255, 0.03) 2px, rgba(0, 255, 255, 0.03) 4px)',
+          }}
+        />
+
+        <div className="relative flex items-center gap-3 px-3 py-1.5">
+          {/* Decrypt indicator */}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_6px_rgba(0,255,255,0.8)]" />
+            <span className="text-[9px] font-mono text-cyan-500/80 uppercase tracking-[0.2em]">Decrypted</span>
+          </div>
+
+          {/* Separator */}
+          <div className="w-px h-3 bg-cyan-500/30" />
+
+          {/* Message content */}
+          <p className="text-xs font-mono text-cyan-300/90 leading-relaxed tracking-wide">
+            <span className="text-cyan-500/60 mr-1">&gt;</span>
+            {description}
+          </p>
+        </div>
+
+        {/* Bottom glow line */}
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent" />
+      </div>
+    </div>
+  );
+};
 
 export const SharedDashboard: React.FC<SharedDashboardProps> = ({
   data,
@@ -941,6 +982,7 @@ export const SharedDashboard: React.FC<SharedDashboardProps> = ({
   expires_at,
   is_snapshot,
   snapshot_at,
+  description,
 }) => {
   // No pushEvent - read-only mode
   const noop = () => {};
@@ -948,6 +990,7 @@ export const SharedDashboard: React.FC<SharedDashboardProps> = ({
   return (
     <DashboardProvider pushEvent={noop} serverMaps={data} mapCachedData={map_cached_data} licenseState={license_state}>
       <SharedHeader expiresAt={expires_at} isSnapshot={is_snapshot} snapshotAt={snapshot_at} />
+      {description && <DescriptionCard description={description} />}
       <SharedMapViewer />
     </DashboardProvider>
   );

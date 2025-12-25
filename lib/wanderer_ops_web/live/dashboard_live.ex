@@ -134,9 +134,11 @@ defmodule WandererOpsWeb.DashboardLive do
       ) do
     hours = Map.get(params, "expiresInHours", 24)
     is_snapshot = Map.get(params, "isSnapshot", false)
+    password = Map.get(params, "password")
+    description = Map.get(params, "description")
     expires_at = DateTime.add(DateTime.utc_now(), hours * 3600, :second)
 
-    attrs = %{expires_at: expires_at, is_snapshot: is_snapshot}
+    attrs = %{expires_at: expires_at, is_snapshot: is_snapshot, description: description}
 
     # Capture snapshot data if this is a snapshot link
     attrs =
@@ -153,7 +155,10 @@ defmodule WandererOpsWeb.DashboardLive do
         attrs
       end
 
-    case WandererOps.Api.ShareLink.new(attrs) do
+    # Pass password as argument (merged with attrs) for hashing
+    input = Map.put(attrs, :password, password)
+
+    case WandererOps.Api.ShareLink.new(input) do
       {:ok, share_link} ->
         url = WandererOpsWeb.Endpoint.url() <> "/shared/#{share_link.token}"
 
@@ -167,7 +172,9 @@ defmodule WandererOpsWeb.DashboardLive do
              expires_at: DateTime.to_iso8601(share_link.expires_at),
              is_expired: false,
              is_snapshot: share_link.is_snapshot,
-             snapshot_at: share_link.snapshot_at && DateTime.to_iso8601(share_link.snapshot_at)
+             snapshot_at: share_link.snapshot_at && DateTime.to_iso8601(share_link.snapshot_at),
+             has_password: not is_nil(share_link.password_hash),
+             description: share_link.description
            }
          }, socket}
 
@@ -211,7 +218,9 @@ defmodule WandererOpsWeb.DashboardLive do
               url: WandererOpsWeb.Endpoint.url() <> "/shared/#{link.token}",
               is_expired: DateTime.compare(link.expires_at, now) == :lt,
               is_snapshot: link.is_snapshot,
-              snapshot_at: link.snapshot_at && DateTime.to_iso8601(link.snapshot_at)
+              snapshot_at: link.snapshot_at && DateTime.to_iso8601(link.snapshot_at),
+              has_password: not is_nil(link.password_hash),
+              description: link.description
             }
           end)
 

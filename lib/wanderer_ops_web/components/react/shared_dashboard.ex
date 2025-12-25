@@ -17,6 +17,7 @@ defmodule WandererOpsWeb.Components.React.SharedDashboard do
   attr :expires_at, :string, required: true
   attr :is_snapshot, :boolean, default: false
   attr :snapshot_at, :string, default: nil
+  attr :description, :string, default: nil
 
   def render(assigns) do
     ~H"""
@@ -29,6 +30,7 @@ defmodule WandererOpsWeb.Components.React.SharedDashboard do
         expires_at={@expires_at}
         is_snapshot={@is_snapshot}
         snapshot_at={@snapshot_at}
+        description={@description}
         class="h-full"
       />
     </div>

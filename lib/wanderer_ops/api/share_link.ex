@@ -43,6 +43,15 @@ defmodule WandererOps.Api.ShareLink do
       allow_nil? true
     end
 
+    attribute :password_hash, :string do
+      allow_nil? true
+    end
+
+    attribute :description, :string do
+      allow_nil? true
+      constraints max_length: 500
+    end
+
     create_timestamp :inserted_at
     update_timestamp :updated_at
   end
@@ -51,17 +60,32 @@ defmodule WandererOps.Api.ShareLink do
     defaults [:read, :destroy]
 
     create :new do
-      accept [:label, :expires_at, :is_snapshot, :snapshot_data]
+      accept [:label, :expires_at, :is_snapshot, :snapshot_data, :description]
+      argument :password, :string, allow_nil?: true
 
       change fn changeset, _context ->
         token = :crypto.strong_rand_bytes(32) |> Base.url_encode64(padding: false)
         changeset = Ash.Changeset.force_change_attribute(changeset, :token, token)
 
         # Set snapshot_at if this is a snapshot
-        if Ash.Changeset.get_attribute(changeset, :is_snapshot) do
-          Ash.Changeset.force_change_attribute(changeset, :snapshot_at, DateTime.utc_now())
-        else
-          changeset
+        changeset =
+          if Ash.Changeset.get_attribute(changeset, :is_snapshot) do
+            Ash.Changeset.force_change_attribute(changeset, :snapshot_at, DateTime.utc_now())
+          else
+            changeset
+          end
+
+        # Hash password if provided
+        case Ash.Changeset.get_argument(changeset, :password) do
+          nil ->
+            changeset
+
+          "" ->
+            changeset
+
+          password ->
+            hash = Argon2.hash_pwd_salt(password)
+            Ash.Changeset.force_change_attribute(changeset, :password_hash, hash)
         end
       end
     end
@@ -89,4 +113,22 @@ defmodule WandererOps.Api.ShareLink do
   identities do
     identity :unique_token, [:token]
   end
+
+  @doc """
+  Checks if the share link has password protection enabled.
+  """
+  def has_password?(share_link), do: not is_nil(share_link.password_hash)
+
+  @doc """
+  Verifies a password against the stored hash.
+  Returns true if the password matches, false otherwise.
+  """
+  def verify_password(share_link, password) when is_binary(password) do
+    case share_link.password_hash do
+      nil -> false
+      hash -> Argon2.verify_pass(password, hash)
+    end
+  end
+
+  def verify_password(_, _), do: false
 end

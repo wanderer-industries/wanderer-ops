@@ -17,12 +17,24 @@ defmodule WandererOpsWeb.SharedMapLive do
       {:ok, share_link} ->
         Logger.info("SharedMapLive: Valid token access, is_snapshot: #{share_link.is_snapshot}")
 
-        if share_link.is_snapshot do
-          # Snapshot mode - use stored data, no PubSub subscriptions
-          mount_snapshot_mode(socket, token, share_link)
+        # Check if password protection is enabled
+        if ShareLink.has_password?(share_link) do
+          # Password required - show password entry form
+          {:ok,
+           socket
+           |> assign(
+             token: token,
+             share_link: share_link,
+             is_valid: true,
+             password_required: true,
+             password_verified: false,
+             password_error: nil,
+             description: share_link.description,
+             page_title: "Dashboard - Password Required"
+           )}
         else
-          # Live mode - existing behavior with PubSub
-          mount_live_mode(socket, token, share_link)
+          # No password - proceed normally
+          mount_content(socket, token, share_link)
         end
 
       {:error, :expired} ->
@@ -33,7 +45,9 @@ defmodule WandererOpsWeb.SharedMapLive do
          |> assign(
            is_valid: false,
            error_type: :expired,
-           page_title: "Link Expired"
+           page_title: "Link Expired",
+           password_required: false,
+           password_verified: false
          )}
 
       {:error, :not_found} ->
@@ -44,8 +58,19 @@ defmodule WandererOpsWeb.SharedMapLive do
          |> assign(
            is_valid: false,
            error_type: :not_found,
-           page_title: "Link Not Found"
+           page_title: "Link Not Found",
+           password_required: false,
+           password_verified: false
          )}
+    end
+  end
+
+  # Mount content after validation (no password or password verified)
+  defp mount_content(socket, token, share_link) do
+    if share_link.is_snapshot do
+      mount_snapshot_mode(socket, token, share_link)
+    else
+      mount_live_mode(socket, token, share_link)
     end
   end
 
@@ -71,6 +96,9 @@ defmodule WandererOpsWeb.SharedMapLive do
        is_snapshot: true,
        snapshot_at: share_link.snapshot_at,
        expires_at: share_link.expires_at,
+       description: share_link.description,
+       password_required: false,
+       password_verified: true,
        page_title: "Dashboard - Snapshot View"
      )}
   end
@@ -106,8 +134,32 @@ defmodule WandererOpsWeb.SharedMapLive do
        is_snapshot: false,
        snapshot_at: nil,
        expires_at: share_link.expires_at,
+       description: share_link.description,
+       password_required: false,
+       password_verified: true,
        page_title: "Dashboard - Shared View"
      )}
+  end
+
+  # Handle password verification
+  @impl true
+  def handle_event("verify_password", %{"password" => password}, socket) do
+    share_link = socket.assigns.share_link
+
+    if ShareLink.verify_password(share_link, password) do
+      Logger.info("SharedMapLive: Password verified successfully")
+      # Password correct - mount the actual content
+      token = socket.assigns.token
+
+      # We need to return {:noreply, socket} since mount_content returns {:ok, socket}
+      case mount_content(socket, token, share_link) do
+        {:ok, updated_socket} ->
+          {:noreply, updated_socket}
+      end
+    else
+      Logger.info("SharedMapLive: Incorrect password attempt")
+      {:noreply, assign(socket, password_error: "Incorrect password")}
+    end
   end
 
   # Ignore data updates in snapshot mode
