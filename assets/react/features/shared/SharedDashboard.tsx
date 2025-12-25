@@ -476,7 +476,15 @@ const animation = {
 };
 
 // Read-only header showing shared status and expiration
-const SharedHeader = ({ expiresAt }: { expiresAt: string }) => {
+const SharedHeader = ({
+  expiresAt,
+  isSnapshot,
+  snapshotAt,
+}: {
+  expiresAt: string;
+  isSnapshot: boolean;
+  snapshotAt: string | null;
+}) => {
   const maps = useMaps();
 
   const formatExpiration = (isoString: string) => {
@@ -497,6 +505,23 @@ const SharedHeader = ({ expiresAt }: { expiresAt: string }) => {
       return `${diffMins}m remaining`;
     } catch {
       return 'Unknown';
+    }
+  };
+
+  const formatSnapshotTime = (isoString: string | null) => {
+    if (!isoString) return 'Unknown time';
+    try {
+      const date = new Date(isoString);
+      return date.toLocaleString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+    } catch {
+      return 'Unknown time';
     }
   };
 
@@ -525,11 +550,40 @@ const SharedHeader = ({ expiresAt }: { expiresAt: string }) => {
           ))}
         </div>
 
-        {/* Shared status indicator */}
+        {/* Status indicators */}
         <div className="flex items-center gap-2">
-          <span className="px-2 py-0.5 bg-orange-500/20 border border-orange-500/50 rounded text-[10px] font-mono text-orange-400">
-            SHARED VIEW
-          </span>
+          {/* Snapshot or Live badge */}
+          {isSnapshot ? (
+            <>
+              <div className="flex items-center gap-1.5 px-2 py-0.5 bg-blue-500/20 border border-blue-500/50 rounded">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-3.5 h-3.5 text-blue-400"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"
+                  />
+                </svg>
+                <span className="text-[10px] font-mono text-blue-400">SNAPSHOT</span>
+              </div>
+              <span className="text-[9px] font-mono text-gray-400">from {formatSnapshotTime(snapshotAt)}</span>
+            </>
+          ) : (
+            <span className="px-2 py-0.5 bg-green-500/20 border border-green-500/50 rounded text-[10px] font-mono text-green-400">
+              LIVE
+            </span>
+          )}
           <span className="text-[9px] font-mono text-gray-400">{formatExpiration(expiresAt)}</span>
         </div>
       </div>
@@ -876,6 +930,8 @@ interface SharedDashboardProps {
   map_cached_data: Record<string, any>;
   license_state: any;
   expires_at: string;
+  is_snapshot: boolean;
+  snapshot_at: string | null;
 }
 
 export const SharedDashboard: React.FC<SharedDashboardProps> = ({
@@ -883,13 +939,15 @@ export const SharedDashboard: React.FC<SharedDashboardProps> = ({
   map_cached_data,
   license_state,
   expires_at,
+  is_snapshot,
+  snapshot_at,
 }) => {
   // No pushEvent - read-only mode
   const noop = () => {};
 
   return (
     <DashboardProvider pushEvent={noop} serverMaps={data} mapCachedData={map_cached_data} licenseState={license_state}>
-      <SharedHeader expiresAt={expires_at} />
+      <SharedHeader expiresAt={expires_at} isSnapshot={is_snapshot} snapshotAt={snapshot_at} />
       <SharedMapViewer />
     </DashboardProvider>
   );

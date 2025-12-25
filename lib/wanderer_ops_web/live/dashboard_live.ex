@@ -129,12 +129,31 @@ defmodule WandererOpsWeb.DashboardLive do
 
   def handle_event(
         "ui:create_share_link",
-        %{"expiresInHours" => hours},
+        params,
         socket
       ) do
+    hours = Map.get(params, "expiresInHours", 24)
+    is_snapshot = Map.get(params, "isSnapshot", false)
     expires_at = DateTime.add(DateTime.utc_now(), hours * 3600, :second)
 
-    case WandererOps.Api.ShareLink.new(%{expires_at: expires_at}) do
+    attrs = %{expires_at: expires_at, is_snapshot: is_snapshot}
+
+    # Capture snapshot data if this is a snapshot link
+    attrs =
+      if is_snapshot do
+        case WandererOps.Services.SnapshotService.capture_snapshot() do
+          {:ok, snapshot_data} ->
+            Map.put(attrs, :snapshot_data, snapshot_data)
+
+          {:error, reason} ->
+            Logger.error("Failed to capture snapshot: #{inspect(reason)}")
+            attrs
+        end
+      else
+        attrs
+      end
+
+    case WandererOps.Api.ShareLink.new(attrs) do
       {:ok, share_link} ->
         url = WandererOpsWeb.Endpoint.url() <> "/shared/#{share_link.token}"
 
@@ -146,7 +165,9 @@ defmodule WandererOpsWeb.DashboardLive do
              token: share_link.token,
              url: url,
              expires_at: DateTime.to_iso8601(share_link.expires_at),
-             is_expired: false
+             is_expired: false,
+             is_snapshot: share_link.is_snapshot,
+             snapshot_at: share_link.snapshot_at && DateTime.to_iso8601(share_link.snapshot_at)
            }
          }, socket}
 
@@ -188,7 +209,9 @@ defmodule WandererOpsWeb.DashboardLive do
               expires_at: DateTime.to_iso8601(link.expires_at),
               label: link.label,
               url: WandererOpsWeb.Endpoint.url() <> "/shared/#{link.token}",
-              is_expired: DateTime.compare(link.expires_at, now) == :lt
+              is_expired: DateTime.compare(link.expires_at, now) == :lt,
+              is_snapshot: link.is_snapshot,
+              snapshot_at: link.snapshot_at && DateTime.to_iso8601(link.snapshot_at)
             }
           end)
 

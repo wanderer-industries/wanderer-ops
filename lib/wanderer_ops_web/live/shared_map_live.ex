@@ -15,38 +15,15 @@ defmodule WandererOpsWeb.SharedMapLive do
   def mount(%{"token" => token}, _session, socket) do
     case validate_token(token) do
       {:ok, share_link} ->
-        Logger.info("SharedMapLive: Valid token access")
+        Logger.info("SharedMapLive: Valid token access, is_snapshot: #{share_link.is_snapshot}")
 
-        {:ok, maps} = WandererOps.Api.Map.read()
-
-        # Subscribe to map updates for real-time data
-        maps
-        |> Enum.each(fn map ->
-          Logger.info("SharedMapLive subscribing to map updates: #{map.id}")
-          Phoenix.PubSub.subscribe(WandererOps.PubSub, map.id)
-        end)
-
-        {:ok, map_cached_data} = WandererOps.Map.Utils.prepare_cached_data(maps)
-
-        license_state =
-          Cache.get(Cache.Keys.license_validation())
-          |> case do
-            {:ok, result} -> result
-            _ -> nil
-          end
-
-        {:ok,
-         socket
-         |> assign(
-           token: token,
-           share_link: share_link,
-           maps: maps |> Enum.map(&map_ui_map/1),
-           map_cached_data: map_cached_data,
-           license_state: license_state,
-           is_valid: true,
-           expires_at: share_link.expires_at,
-           page_title: "Dashboard - Shared View"
-         )}
+        if share_link.is_snapshot do
+          # Snapshot mode - use stored data, no PubSub subscriptions
+          mount_snapshot_mode(socket, token, share_link)
+        else
+          # Live mode - existing behavior with PubSub
+          mount_live_mode(socket, token, share_link)
+        end
 
       {:error, :expired} ->
         Logger.info("SharedMapLive: Expired token access attempt")
@@ -72,11 +49,83 @@ defmodule WandererOpsWeb.SharedMapLive do
     end
   end
 
+  defp mount_snapshot_mode(socket, token, share_link) do
+    snapshot = share_link.snapshot_data
+
+    license_state =
+      Cache.get(Cache.Keys.license_validation())
+      |> case do
+        {:ok, result} -> result
+        _ -> nil
+      end
+
+    {:ok,
+     socket
+     |> assign(
+       token: token,
+       share_link: share_link,
+       maps: snapshot["maps"],
+       map_cached_data: snapshot["map_cached_data"],
+       license_state: license_state,
+       is_valid: true,
+       is_snapshot: true,
+       snapshot_at: share_link.snapshot_at,
+       expires_at: share_link.expires_at,
+       page_title: "Dashboard - Snapshot View"
+     )}
+  end
+
+  defp mount_live_mode(socket, token, share_link) do
+    {:ok, maps} = WandererOps.Api.Map.read()
+
+    # Subscribe to map updates for real-time data
+    maps
+    |> Enum.each(fn map ->
+      Logger.info("SharedMapLive subscribing to map updates: #{map.id}")
+      Phoenix.PubSub.subscribe(WandererOps.PubSub, map.id)
+    end)
+
+    {:ok, map_cached_data} = WandererOps.Map.Utils.prepare_cached_data(maps)
+
+    license_state =
+      Cache.get(Cache.Keys.license_validation())
+      |> case do
+        {:ok, result} -> result
+        _ -> nil
+      end
+
+    {:ok,
+     socket
+     |> assign(
+       token: token,
+       share_link: share_link,
+       maps: maps |> Enum.map(&map_ui_map/1),
+       map_cached_data: map_cached_data,
+       license_state: license_state,
+       is_valid: true,
+       is_snapshot: false,
+       snapshot_at: nil,
+       expires_at: share_link.expires_at,
+       page_title: "Dashboard - Shared View"
+     )}
+  end
+
+  # Ignore data updates in snapshot mode
   @impl true
   def handle_info(
         %{event: :data_updated, payload: _payload},
-        %{assigns: %{maps: maps}} = socket
+        %{assigns: %{is_snapshot: true}} = socket
       ) do
+    # Snapshot mode - ignore live updates
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info(
+        %{event: :data_updated, payload: _payload},
+        %{assigns: %{maps: maps, is_snapshot: false}} = socket
+      ) do
+    # Live mode - refresh data
     Logger.info("SharedMapLive received :data_updated event")
     {:ok, map_cached_data} = WandererOps.Map.Utils.prepare_cached_data(maps)
     {:noreply, socket |> assign(map_cached_data: map_cached_data)}

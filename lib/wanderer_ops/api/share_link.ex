@@ -30,6 +30,19 @@ defmodule WandererOps.Api.ShareLink do
       constraints max_length: 100
     end
 
+    attribute :is_snapshot, :boolean do
+      allow_nil? false
+      default false
+    end
+
+    attribute :snapshot_data, :map do
+      allow_nil? true
+    end
+
+    attribute :snapshot_at, :utc_datetime do
+      allow_nil? true
+    end
+
     create_timestamp :inserted_at
     update_timestamp :updated_at
   end
@@ -38,11 +51,18 @@ defmodule WandererOps.Api.ShareLink do
     defaults [:read, :destroy]
 
     create :new do
-      accept [:label, :expires_at]
+      accept [:label, :expires_at, :is_snapshot, :snapshot_data]
 
       change fn changeset, _context ->
         token = :crypto.strong_rand_bytes(32) |> Base.url_encode64(padding: false)
-        Ash.Changeset.force_change_attribute(changeset, :token, token)
+        changeset = Ash.Changeset.force_change_attribute(changeset, :token, token)
+
+        # Set snapshot_at if this is a snapshot
+        if Ash.Changeset.get_attribute(changeset, :is_snapshot) do
+          Ash.Changeset.force_change_attribute(changeset, :snapshot_at, DateTime.utc_now())
+        else
+          changeset
+        end
       end
     end
 

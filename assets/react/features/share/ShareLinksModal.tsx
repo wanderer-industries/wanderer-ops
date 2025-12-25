@@ -10,6 +10,8 @@ interface ShareLink {
   label: string | null;
   url: string;
   is_expired: boolean;
+  is_snapshot: boolean;
+  snapshot_at: string | null;
 }
 
 interface ShareLinksModalProps {
@@ -21,6 +23,7 @@ interface ShareLinksModalProps {
 export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ isOpen, onClose, pushEvent }) => {
   const [links, setLinks] = useState<ShareLink[]>([]);
   const [expirationHours, setExpirationHours] = useState(24);
+  const [isSnapshot, setIsSnapshot] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -49,12 +52,28 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ isOpen, onClos
     try {
       const response = await pushEventAsync(ServerEvent.CREATE_SHARE_LINK, {
         expiresInHours: expirationHours,
+        isSnapshot: isSnapshot,
       });
       if (response?.success && response?.link) {
         setLinks(prev => [response.link, ...prev]);
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const formatSnapshotTime = (isoString: string | null) => {
+    if (!isoString) return null;
+    try {
+      const date = new Date(isoString);
+      return date.toLocaleString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch {
+      return null;
     }
   };
 
@@ -113,25 +132,46 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ isOpen, onClos
 
         {/* Create new link section */}
         <div className="px-6 py-4 border-b border-gray-700/50">
-          <div className="flex items-center gap-4">
-            <select
-              value={expirationHours}
-              onChange={e => setExpirationHours(Number(e.target.value))}
-              className="bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm text-white focus:border-orange-500 focus:outline-none"
-            >
-              <option value={1}>1 hour</option>
-              <option value={6}>6 hours</option>
-              <option value={24}>24 hours</option>
-              <option value={72}>3 days</option>
-              <option value={168}>7 days</option>
-            </select>
-            <button
-              onClick={handleCreateLink}
-              disabled={isLoading}
-              className="px-4 py-2 bg-orange-500/20 border border-orange-500/50 rounded text-orange-400 text-sm font-mono hover:bg-orange-500/30 hover:border-orange-500 transition-colors disabled:opacity-50"
-            >
-              {isLoading ? 'Creating...' : 'Create Link'}
-            </button>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-4">
+              <select
+                value={expirationHours}
+                onChange={e => setExpirationHours(Number(e.target.value))}
+                className="bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm text-white focus:border-orange-500 focus:outline-none"
+              >
+                <option value={1}>1 hour</option>
+                <option value={6}>6 hours</option>
+                <option value={24}>24 hours</option>
+                <option value={72}>3 days</option>
+                <option value={168}>7 days</option>
+              </select>
+
+              {/* Snapshot toggle */}
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isSnapshot}
+                  onChange={e => setIsSnapshot(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-500 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-300 font-mono">Snapshot</span>
+              </label>
+
+              <button
+                onClick={handleCreateLink}
+                disabled={isLoading}
+                className="px-4 py-2 bg-orange-500/20 border border-orange-500/50 rounded text-orange-400 text-sm font-mono hover:bg-orange-500/30 hover:border-orange-500 transition-colors disabled:opacity-50"
+              >
+                {isLoading ? 'Creating...' : isSnapshot ? 'Create Snapshot' : 'Create Live Link'}
+              </button>
+            </div>
+
+            {/* Snapshot explanation */}
+            {isSnapshot && (
+              <p className="text-xs text-gray-400 font-mono">
+                Snapshot captures the current dashboard state. Viewers will see frozen data from this moment.
+              </p>
+            )}
           </div>
         </div>
 
@@ -151,11 +191,23 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ isOpen, onClos
                   }`}
                 >
                   <div className="flex-1 min-w-0 mr-4">
-                    <p className="text-sm text-white font-mono truncate" title={link.url}>
-                      {link.url}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-white font-mono truncate" title={link.url}>
+                        {link.url}
+                      </p>
+                      {/* Snapshot badge */}
+                      {link.is_snapshot && (
+                        <span className="flex-shrink-0 px-1.5 py-0.5 bg-blue-500/20 border border-blue-500/50 rounded text-[10px] font-mono text-blue-400">
+                          SNAPSHOT
+                        </span>
+                      )}
+                    </div>
                     <p className={`text-xs mt-1 ${link.is_expired ? 'text-red-400' : 'text-gray-400'}`}>
-                      {link.is_expired ? 'Expired' : `Expires: ${formatExpiresAt(link.expires_at)}`}
+                      {link.is_expired
+                        ? 'Expired'
+                        : link.is_snapshot
+                          ? `Snapshot from: ${formatSnapshotTime(link.snapshot_at)} | Expires: ${formatExpiresAt(link.expires_at)}`
+                          : `Expires: ${formatExpiresAt(link.expires_at)}`}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">

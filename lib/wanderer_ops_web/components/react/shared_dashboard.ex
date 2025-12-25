@@ -15,6 +15,8 @@ defmodule WandererOpsWeb.Components.React.SharedDashboard do
   attr :map_cached_data, :any, required: true
   attr :license_state, :any, required: true
   attr :expires_at, :string, required: true
+  attr :is_snapshot, :boolean, default: false
+  attr :snapshot_at, :string, default: nil
 
   def render(assigns) do
     ~H"""
@@ -25,6 +27,8 @@ defmodule WandererOpsWeb.Components.React.SharedDashboard do
         map_cached_data={@map_cached_data}
         license_state={@license_state}
         expires_at={@expires_at}
+        is_snapshot={@is_snapshot}
+        snapshot_at={@snapshot_at}
         class="h-full"
       />
     </div>
