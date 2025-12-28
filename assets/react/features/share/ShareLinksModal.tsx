@@ -3,6 +3,9 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { ServerEvent } from '@/react/constants/serverEvent';
 import { usePushEventAsync } from '@/react/hooks/usePushEventAsync';
 
+type ProtectionType = 'none' | 'password' | 'minigame';
+type MinigameDifficulty = 'easy' | 'normal' | 'hard';
+
 interface ShareLink {
   id: string;
   token: string;
@@ -13,6 +16,8 @@ interface ShareLink {
   is_snapshot: boolean;
   snapshot_at: string | null;
   has_password: boolean;
+  has_minigame: boolean;
+  minigame_difficulty: MinigameDifficulty | null;
   description: string | null;
 }
 
@@ -26,7 +31,9 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ isOpen, onClos
   const [links, setLinks] = useState<ShareLink[]>([]);
   const [expirationHours, setExpirationHours] = useState(24);
   const [isSnapshot, setIsSnapshot] = useState(false);
+  const [protectionType, setProtectionType] = useState<ProtectionType>('none');
   const [password, setPassword] = useState('');
+  const [minigameDifficulty, setMinigameDifficulty] = useState<MinigameDifficulty>('normal');
   const [description, setDescription] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -57,13 +64,16 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ isOpen, onClos
       const response = await pushEventAsync(ServerEvent.CREATE_SHARE_LINK, {
         expiresInHours: expirationHours,
         isSnapshot: isSnapshot,
-        password: password || null,
+        password: protectionType === 'password' ? password : null,
+        minigameEnabled: protectionType === 'minigame',
+        minigameDifficulty: protectionType === 'minigame' ? minigameDifficulty : null,
         description: description || null,
       });
       if (response?.success && response?.link) {
         setLinks(prev => [response.link, ...prev]);
         // Reset fields after successful creation
         setPassword('');
+        setProtectionType('none');
         setDescription('');
       }
     } finally {
@@ -192,14 +202,70 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ isOpen, onClos
               className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm text-white font-mono resize-none focus:border-orange-500 focus:outline-none placeholder:text-gray-500"
             />
 
-            {/* Password input */}
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="Password (optional) - protect access to this link"
-              className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm text-white font-mono focus:border-orange-500 focus:outline-none placeholder:text-gray-500"
-            />
+            {/* Protection type selector */}
+            <div className="space-y-2">
+              <p className="text-xs text-gray-400 font-mono">Access Protection:</p>
+              <div className="flex flex-wrap gap-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="protectionType"
+                    checked={protectionType === 'none'}
+                    onChange={() => setProtectionType('none')}
+                    className="w-4 h-4 border-gray-600 bg-gray-700 text-orange-500 focus:ring-orange-500"
+                  />
+                  <span className="text-sm text-gray-300 font-mono">None</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="protectionType"
+                    checked={protectionType === 'password'}
+                    onChange={() => setProtectionType('password')}
+                    className="w-4 h-4 border-gray-600 bg-gray-700 text-orange-500 focus:ring-orange-500"
+                  />
+                  <span className="text-sm text-gray-300 font-mono">Password</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="protectionType"
+                    checked={protectionType === 'minigame'}
+                    onChange={() => setProtectionType('minigame')}
+                    className="w-4 h-4 border-gray-600 bg-gray-700 text-green-500 focus:ring-green-500"
+                  />
+                  <span className="text-sm text-green-400 font-mono">Hacking Mini-game</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Password input (conditional) */}
+            {protectionType === 'password' && (
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="Enter password"
+                className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-sm text-white font-mono focus:border-orange-500 focus:outline-none placeholder:text-gray-500"
+              />
+            )}
+
+            {/* Minigame difficulty selector (conditional) */}
+            {protectionType === 'minigame' && (
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-gray-400 font-mono">Difficulty:</span>
+                <select
+                  value={minigameDifficulty}
+                  onChange={e => setMinigameDifficulty(e.target.value as MinigameDifficulty)}
+                  className="bg-gray-700 border border-green-600/50 rounded px-3 py-2 text-sm text-green-400 font-mono focus:border-green-500 focus:outline-none"
+                >
+                  <option value="easy">Easy</option>
+                  <option value="normal">Normal</option>
+                  <option value="hard">Hard</option>
+                </select>
+                <p className="text-xs text-gray-500 font-mono">Viewers must complete EVE-style hacking to unlock</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -246,6 +312,15 @@ export const ShareLinksModal: React.FC<ShareLinksModalProps> = ({ isOpen, onClos
                               d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"
                             />
                           </svg>
+                        </span>
+                      )}
+                      {/* Minigame badge */}
+                      {link.has_minigame && (
+                        <span
+                          className="flex-shrink-0 px-1.5 py-0.5 bg-green-500/20 border border-green-500/50 rounded text-[10px] font-mono text-green-400 uppercase"
+                          title={`Hacking mini-game (${link.minigame_difficulty})`}
+                        >
+                          HACK
                         </span>
                       )}
                     </div>

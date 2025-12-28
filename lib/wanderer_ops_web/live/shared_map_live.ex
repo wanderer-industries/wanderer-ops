@@ -17,24 +17,53 @@ defmodule WandererOpsWeb.SharedMapLive do
       {:ok, share_link} ->
         Logger.info("SharedMapLive: Valid token access, is_snapshot: #{share_link.is_snapshot}")
 
-        # Check if password protection is enabled
-        if ShareLink.has_password?(share_link) do
-          # Password required - show password entry form
-          {:ok,
-           socket
-           |> assign(
-             token: token,
-             share_link: share_link,
-             is_valid: true,
-             password_required: true,
-             password_verified: false,
-             password_error: nil,
-             description: share_link.description,
-             page_title: "Dashboard - Password Required"
-           )}
-        else
-          # No password - proceed normally
-          mount_content(socket, token, share_link)
+        # Check if minigame or password protection is enabled
+        cond do
+          ShareLink.has_minigame?(share_link) ->
+            # Minigame required - show hacking interface
+            difficulty =
+              case share_link.minigame_difficulty do
+                nil -> "normal"
+                atom when is_atom(atom) -> Atom.to_string(atom)
+                str -> str
+              end
+
+            {:ok,
+             socket
+             |> assign(
+               token: token,
+               share_link: share_link,
+               is_valid: true,
+               minigame_required: true,
+               minigame_completed: false,
+               minigame_difficulty: difficulty,
+               password_required: false,
+               password_verified: false,
+               password_error: nil,
+               description: share_link.description,
+               page_title: "Dashboard - Hack Required"
+             )}
+
+          ShareLink.has_password?(share_link) ->
+            # Password required - show password entry form
+            {:ok,
+             socket
+             |> assign(
+               token: token,
+               share_link: share_link,
+               is_valid: true,
+               minigame_required: false,
+               minigame_completed: false,
+               password_required: true,
+               password_verified: false,
+               password_error: nil,
+               description: share_link.description,
+               page_title: "Dashboard - Password Required"
+             )}
+
+          true ->
+            # No protection - proceed normally
+            mount_content(socket, token, share_link)
         end
 
       {:error, :expired} ->
@@ -159,6 +188,20 @@ defmodule WandererOpsWeb.SharedMapLive do
     else
       Logger.info("SharedMapLive: Incorrect password attempt")
       {:noreply, assign(socket, password_error: "Incorrect password")}
+    end
+  end
+
+  # Handle minigame completion
+  @impl true
+  def handle_event("minigame_completed", _params, socket) do
+    Logger.info("SharedMapLive: Minigame completed successfully")
+    share_link = socket.assigns.share_link
+    token = socket.assigns.token
+
+    # Minigame won - mount the actual content
+    case mount_content(socket, token, share_link) do
+      {:ok, updated_socket} ->
+        {:noreply, updated_socket |> assign(minigame_completed: true)}
     end
   end
 

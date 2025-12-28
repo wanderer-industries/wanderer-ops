@@ -136,9 +136,24 @@ defmodule WandererOpsWeb.DashboardLive do
     is_snapshot = Map.get(params, "isSnapshot", false)
     password = Map.get(params, "password")
     description = Map.get(params, "description")
+    minigame_enabled = Map.get(params, "minigameEnabled", false)
+
+    minigame_difficulty =
+      case Map.get(params, "minigameDifficulty") do
+        nil -> nil
+        diff when is_binary(diff) -> String.to_existing_atom(diff)
+        diff -> diff
+      end
+
     expires_at = DateTime.add(DateTime.utc_now(), hours * 3600, :second)
 
-    attrs = %{expires_at: expires_at, is_snapshot: is_snapshot, description: description}
+    attrs = %{
+      expires_at: expires_at,
+      is_snapshot: is_snapshot,
+      description: description,
+      minigame_enabled: minigame_enabled,
+      minigame_difficulty: minigame_difficulty
+    }
 
     # Capture snapshot data if this is a snapshot link
     attrs =
@@ -174,6 +189,9 @@ defmodule WandererOpsWeb.DashboardLive do
              is_snapshot: share_link.is_snapshot,
              snapshot_at: share_link.snapshot_at && DateTime.to_iso8601(share_link.snapshot_at),
              has_password: not is_nil(share_link.password_hash),
+             has_minigame: share_link.minigame_enabled,
+             minigame_difficulty:
+               share_link.minigame_difficulty && Atom.to_string(share_link.minigame_difficulty),
              description: share_link.description
            }
          }, socket}
@@ -220,6 +238,9 @@ defmodule WandererOpsWeb.DashboardLive do
               is_snapshot: link.is_snapshot,
               snapshot_at: link.snapshot_at && DateTime.to_iso8601(link.snapshot_at),
               has_password: not is_nil(link.password_hash),
+              has_minigame: link.minigame_enabled,
+              minigame_difficulty:
+                link.minigame_difficulty && Atom.to_string(link.minigame_difficulty),
               description: link.description
             }
           end)

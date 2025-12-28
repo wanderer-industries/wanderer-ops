@@ -52,6 +52,16 @@ defmodule WandererOps.Api.ShareLink do
       constraints max_length: 500
     end
 
+    attribute :minigame_enabled, :boolean do
+      allow_nil? false
+      default false
+    end
+
+    attribute :minigame_difficulty, :atom do
+      allow_nil? true
+      constraints one_of: [:easy, :normal, :hard]
+    end
+
     create_timestamp :inserted_at
     update_timestamp :updated_at
   end
@@ -60,7 +70,16 @@ defmodule WandererOps.Api.ShareLink do
     defaults [:read, :destroy]
 
     create :new do
-      accept [:label, :expires_at, :is_snapshot, :snapshot_data, :description]
+      accept [
+        :label,
+        :expires_at,
+        :is_snapshot,
+        :snapshot_data,
+        :description,
+        :minigame_enabled,
+        :minigame_difficulty
+      ]
+
       argument :password, :string, allow_nil?: true
 
       change fn changeset, _context ->
@@ -118,6 +137,11 @@ defmodule WandererOps.Api.ShareLink do
   Checks if the share link has password protection enabled.
   """
   def has_password?(share_link), do: not is_nil(share_link.password_hash)
+
+  @doc """
+  Checks if the share link has mini-game protection enabled.
+  """
+  def has_minigame?(share_link), do: share_link.minigame_enabled == true
 
   @doc """
   Verifies a password against the stored hash.
