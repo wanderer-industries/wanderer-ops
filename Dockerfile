@@ -60,7 +60,9 @@ COPY assets assets
 # platform-specific optional deps (rollup, sass-embedded) to be resolved for Linux
 RUN rm -rf assets/node_modules 2> /dev/null || true
 RUN cd assets && yarn install
-RUN mix assets.deploy
+# Run build directly (skip mix assets.setup which uses npm and breaks platform deps)
+RUN cd assets && yarn build && yarn build-server
+RUN mix phx.digest
 
 # Compile the release
 RUN mix compile
