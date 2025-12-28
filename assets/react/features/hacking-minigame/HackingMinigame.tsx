@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { HUD } from './components/HUD';
 import { drawNodeStatsForType } from './components/nodeStats';
+import { UtilitySlots } from './components/UtilitySlots';
 import { Difficulty, DIFFICULTY_CONFIG, NODE_STATS, NodeType, THEME } from './constants/nodeDefinitions';
 import { useGameState } from './hooks/useGameState';
 import { GameNode, GameState } from './types';
@@ -617,7 +618,7 @@ export const HackingMinigame: React.FC<HackingMinigameProps> = ({ difficulty, se
       <div className="flex flex-col items-center gap-4 p-4 max-w-4xl w-full">
         {/* Intro Overlay */}
         {gameState.phase === 'intro' && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/80 backdrop-blur-sm">
             <div className="text-center p-8 max-w-md animate-fade-in">
               <div className="w-20 h-20 mx-auto mb-6 text-[#00ff88] animate-pulse relative">
                 <div className="absolute inset-0 animate-ping opacity-30">
@@ -706,34 +707,48 @@ export const HackingMinigame: React.FC<HackingMinigameProps> = ({ difficulty, se
           </div>
         )}
 
-        {/* Hex Grid Canvas */}
-        <canvas
-          ref={canvasRef}
-          width={canvasSize}
-          height={canvasSize}
-          onClick={handleCanvasClick}
-          className="cursor-pointer border border-[#00ff88]/20 rounded-lg shadow-[0_0_50px_rgba(0,255,136,0.1)] hover:shadow-[0_0_80px_rgba(0,255,136,0.2)] transition-shadow duration-500"
-          style={{ maxWidth: '100%', maxHeight: '60vh', width: 'auto', height: 'auto', objectFit: 'contain' }}
-        />
+        {/* HUD - Above the game field (hidden during intro) */}
+        {gameState.phase === 'playing' && (
+          <div className="flex justify-center">
+            <HUD
+              attack={gameState.baseVirusStrength}
+              maxAttack={50}
+              suppressorPenalty={suppressorPenalty}
+              coherence={gameState.virusCoherence}
+              maxCoherence={gameState.maxVirusCoherence}
+              shieldTurnsRemaining={gameState.buffs.shieldTurnsRemaining}
+              healOverTime={gameState.healOverTime}
+              activeDoTCount={Object.keys(gameState.activeDoTs).length}
+              turnCount={gameState.turnCount}
+              targetingMode={gameState.targetingMode}
+              onCancelTargeting={cancelTargeting}
+            />
+          </div>
+        )}
 
-        {/* HUD - Bottom Panel */}
-        <div className="w-full max-w-3xl mt-4">
-          <HUD
-            attack={gameState.baseVirusStrength}
-            maxAttack={50}
-            suppressorPenalty={suppressorPenalty}
-            coherence={gameState.virusCoherence}
-            maxCoherence={gameState.maxVirusCoherence}
-            shieldTurnsRemaining={gameState.buffs.shieldTurnsRemaining}
-            healOverTime={gameState.healOverTime}
-            activeDoTCount={Object.keys(gameState.activeDoTs).length}
-            turnCount={gameState.turnCount}
-            utilities={gameState.utilities}
-            onUseUtility={useUtility}
-            targetingMode={gameState.targetingMode}
-            onCancelTargeting={cancelTargeting}
+        {/* Game Field */}
+        <div className="relative">
+          {/* Hex Grid Canvas */}
+          <canvas
+            ref={canvasRef}
+            width={canvasSize}
+            height={canvasSize}
+            onClick={handleCanvasClick}
+            className="cursor-pointer border border-[#00ff88]/20 rounded-lg shadow-[0_0_50px_rgba(0,255,136,0.1)] hover:shadow-[0_0_80px_rgba(0,255,136,0.2)] transition-shadow duration-500"
+            style={{ maxWidth: '100%', maxHeight: '55vh', width: 'auto', height: 'auto', objectFit: 'contain' }}
           />
         </div>
+
+        {/* Utility Slots - Below the game field */}
+        {gameState.phase === 'playing' && (
+          <div className="flex justify-center">
+            <UtilitySlots
+              utilities={gameState.utilities}
+              onUseUtility={useUtility}
+              targetingMode={gameState.targetingMode}
+            />
+          </div>
+        )}
 
         {/* Legend */}
         <div className="flex flex-wrap gap-4 p-3 bg-black/30 rounded text-xs font-mono border border-[#00ff88]/10">
