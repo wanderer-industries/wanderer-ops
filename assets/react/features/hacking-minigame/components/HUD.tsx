@@ -16,7 +16,7 @@ interface HUDProps {
   maxCoherence: number;
 
   // Buffs
-  shieldCharges: number;
+  shieldTurnsRemaining: number;
   healOverTime: HealOverTime;
   activeDoTCount: number;
 
@@ -38,7 +38,7 @@ export const HUD: React.FC<HUDProps> = ({
   suppressorPenalty,
   coherence,
   maxCoherence,
-  shieldCharges,
+  shieldTurnsRemaining,
   healOverTime,
   activeDoTCount,
   turnCount,
@@ -86,7 +86,7 @@ export const HUD: React.FC<HUDProps> = ({
             coherence={coherence}
             maxCoherence={maxCoherence}
             suppressorPenalty={suppressorPenalty}
-            shieldCharges={shieldCharges}
+            shieldTurnsRemaining={shieldTurnsRemaining}
           />
 
           {/* Additional Status Info */}

@@ -22,7 +22,7 @@ export interface UtilityInventory {
 }
 
 export interface ActiveBuffs {
-  shieldCharges: number; // Polymorphic shield charges remaining
+  shieldTurnsRemaining: number; // Polymorphic shield turns remaining (blocks all attacks while active)
 }
 
 export interface HealOverTime {

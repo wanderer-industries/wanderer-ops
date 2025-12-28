@@ -154,7 +154,7 @@ function generateBoard(seed: string, difficulty: Difficulty): GameState {
       secondaryVectors: 0,
     },
     buffs: {
-      shieldCharges: 0,
+      shieldTurnsRemaining: 0,
     },
     healOverTime: { turnsRemaining: 0, healPerTurn: 0 },
     activeDoTs: {},
@@ -358,14 +358,12 @@ export function useGameState(seed: string, difficulty: Difficulty) {
           // No combat, no markAdjacentNodes - just reveal
         } else if (node.state === 'revealed') {
           // Second click - ATTACK!
-          const hasShield = newBuffs.shieldCharges > 0;
+          const hasShield = newBuffs.shieldTurnsRemaining > 0;
           const result = resolveCombat(effectiveStrength, node, hasShield, rng);
 
           newLog = [...newLog, ...result.log];
 
-          if (hasShield && result.virusDamage > 0) {
-            newBuffs.shieldCharges--;
-          } else {
+          if (!hasShield) {
             newVirusCoherence -= result.virusDamage;
           }
 
@@ -502,6 +500,16 @@ export function useGameState(seed: string, difficulty: Difficulty) {
           }
         }
 
+        // Process Polymorphic Shield duration
+        if (newBuffs.shieldTurnsRemaining > 0 && phase === 'playing') {
+          newBuffs.shieldTurnsRemaining--;
+          if (newBuffs.shieldTurnsRemaining === 0) {
+            newLog.push('Polymorphic Shield effect expired.');
+          } else {
+            newLog.push(`Polymorphic Shield: ${newBuffs.shieldTurnsRemaining} turn(s) remaining.`);
+          }
+        }
+
         // Process Damage Over Time (Secondary Vector)
         if (phase === 'playing') {
           const expiredDoTs: string[] = [];
@@ -559,11 +567,7 @@ export function useGameState(seed: string, difficulty: Difficulty) {
             newNodes.forEach((target, targetId) => {
               // Heal all revealed defensive nodes (except the restoration itself)
               // Can overheal beyond max coherence
-              if (
-                target.id !== restoration.id &&
-                NODE_STATS[target.type].isDefensive &&
-                target.state === 'revealed'
-              ) {
+              if (target.id !== restoration.id && NODE_STATS[target.type].isDefensive && target.state === 'revealed') {
                 // Create a new object to ensure React detects the state change
                 const healedTarget = { ...target };
                 healedTarget.coherence = target.coherence + healAmount;
@@ -623,8 +627,8 @@ export function useGameState(seed: string, difficulty: Difficulty) {
             break;
           case 'polymorphicShields':
             newUtilities[utility]--;
-            newBuffs.shieldCharges += 2;
-            newLog.push('Polymorphic Shield activated. Next 2 attacks nullified.');
+            newBuffs.shieldTurnsRemaining = 3;
+            newLog.push('Polymorphic Shield activated! Blocking attacks for 3 turns.');
             break;
           case 'secondaryVectors':
             // Enter targeting mode - click a defensive node to apply DoT

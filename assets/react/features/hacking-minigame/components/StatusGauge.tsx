@@ -6,7 +6,7 @@ interface StatusGaugeProps {
   coherence: number;
   maxCoherence: number;
   suppressorPenalty?: number;
-  shieldCharges?: number;
+  shieldTurnsRemaining?: number;
 }
 
 export const StatusGauge: React.FC<StatusGaugeProps> = ({
@@ -15,7 +15,7 @@ export const StatusGauge: React.FC<StatusGaugeProps> = ({
   coherence,
   maxCoherence,
   suppressorPenalty = 0,
-  shieldCharges = 0,
+  shieldTurnsRemaining = 0,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameRef = useRef<number>(0);
@@ -158,8 +158,8 @@ export const StatusGauge: React.FC<StatusGaugeProps> = ({
       drawCoherenceIcon(ctx, centerX - 14, centerY + radius + 12);
 
       // Draw shield indicator if active
-      if (shieldCharges > 0) {
-        drawShieldIndicator(ctx, centerX, centerY - radius / 2, shieldCharges, time);
+      if (shieldTurnsRemaining > 0) {
+        drawShieldIndicator(ctx, centerX, centerY - radius / 2, shieldTurnsRemaining, time);
       }
 
       animationFrameRef.current = requestAnimationFrame(animate);
@@ -172,7 +172,7 @@ export const StatusGauge: React.FC<StatusGaugeProps> = ({
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [attack, maxAttack, coherence, maxCoherence, suppressorPenalty, shieldCharges]);
+  }, [attack, maxAttack, coherence, maxCoherence, suppressorPenalty, shieldTurnsRemaining]);
 
   return (
     <div className="relative">
@@ -242,10 +242,16 @@ function drawCoherenceIcon(ctx: CanvasRenderingContext2D, x: number, y: number) 
   ctx.fill();
 }
 
-function drawShieldIndicator(ctx: CanvasRenderingContext2D, x: number, y: number, charges: number, time: number) {
+function drawShieldIndicator(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  turnsRemaining: number,
+  time: number,
+) {
   const pulse = Math.sin(time * 4) * 0.2 + 0.8;
   ctx.fillStyle = `rgba(0, 255, 255, ${0.8 * pulse})`;
-  ctx.font = 'bold 12px monospace';
+  ctx.font = 'bold 10px monospace';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
@@ -262,8 +268,8 @@ function drawShieldIndicator(ctx: CanvasRenderingContext2D, x: number, y: number
   ctx.lineWidth = 1.5;
   ctx.stroke();
 
-  // Charge count
-  ctx.fillText(String(charges), x, y);
+  // Turns remaining count
+  ctx.fillText(`${turnsRemaining}t`, x, y);
 }
 
 export default StatusGauge;
